@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BUG-TRACK | Staff Portal</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --accent: #3b82f6; --accent-glow: rgba(59, 130, 246, 0.4); }
+        body { background: #f0f2f5; font-family: 'Outfit', sans-serif; color: #1e293b; }
+        .glass-header { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255, 255, 255, 0.3); }
+        .input-premium { background: white; border: 1.5px solid #e2e8f0; border-radius: 1rem; padding: 0.8rem 1.2rem; width: 100%; transition: all 0.2s; font-size: 13px; }
+        .input-premium:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
+        .btn-primary { background: #0f172a; color: white; border-radius: 1rem; padding: 1rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; font-size: 11px; transition: all 0.3s; }
+        .btn-primary:hover { background: #000; transform: translateY(-2px); box-shadow: 0 10px 20px -5px rgba(0,0,0,0.2); }
+        .file-btn { cursor: pointer; background: white; padding: 0.8rem; border-radius: 1rem; font-size: 10px; font-weight: 800; color: #64748b; border: 1.5px solid #e2e8f0; transition: all 0.2s; }
+        .file-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(59, 130, 246, 0.05); }
+        .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; }
+        .severity-critical { background: #fee2e2; color: #991b1b; }
+        .severity-high { background: #ffedd5; color: #9a3412; }
+        .severity-medium { background: #fef9c3; color: #854d0e; }
+        .severity-low { background: #f0fdf4; color: #166534; }
+        .severity-unassigned { background: #f1f5f9; color: #64748b; }
+        .profile-dropdown { display: none; position: absolute; top: 100%; right: 0; background: white; border: 1px solid #e2e8f0; border-radius: 1.25rem; padding: 0.5rem; width: 180px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); z-index: 100; margin-top: 0.5rem; }
+        .profile-dropdown.active { display: block; animation: slideDown 0.2s ease-out; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); z-index: 100; align-items: center; justify-content: center; }
+        .modal-overlay.active { display: flex; }
+        .card-report { background: white; border: 1px solid #e2e8f0; border-radius: 1.5rem; padding: 1.5rem; transition: all 0.3s; cursor: pointer; }
+        .card-report:hover { transform: translateY(-3px); border-color: var(--accent); box-shadow: 0 15px 30px -10px rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body class="flex flex-col h-screen overflow-hidden">
+    <header class="h-20 glass-header flex items-center justify-between px-10 flex-shrink-0 z-30">
+        <div class="flex items-center gap-4">
+            <img src="/logo.png" alt="KG Logo" class="w-10 h-10 object-contain rounded-xl shadow-md shadow-blue-500/10">
+            <div>
+                <h1 class="text-xl font-black text-slate-900 tracking-tighter italic leading-none">BUG-TRACK</h1>
+                <span class="text-[9px] font-black text-blue-600 uppercase tracking-[0.2em]">Staff Portal</span>
+            </div>
+        </div>
+        
+        <div class="relative">
+            <button onclick="toggleDropdown()" class="flex items-center gap-4 hover:bg-white p-2 rounded-2xl transition-all border border-transparent hover:border-slate-200 group">
+                <div class="text-right">
+                    <p id="userName" class="font-bold text-slate-900 leading-none">User</p>
+                    <span id="userDept" class="text-[9px] font-black text-blue-600 uppercase tracking-widest">DEPT</span>
+                </div>
+                <img id="userAvatar" src="" class="w-11 h-11 rounded-2xl border-2 border-white shadow-sm group-hover:shadow-md transition-all" alt="Avatar">
+            </button>
+            
+            <div id="profileDropdown" class="profile-dropdown">
+                <button onclick="logout()" class="w-full flex items-center gap-3 p-4 text-xs font-bold text-red-500 hover:bg-red-50 rounded-xl transition-all">
+                    <span>🚪</span> Sign Out
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 overflow-hidden grid grid-cols-1 lg:grid-cols-12 bg-slate-50">
+        <div class="lg:col-span-4 p-10 border-r border-slate-200 bg-white overflow-y-auto">
+            <div class="max-w-md mx-auto space-y-10">
+                <div>
+                    <h2 class="text-3xl font-black text-slate-900 tracking-tight">Report a Problem</h2>
+                    <p class="text-slate-400 font-medium mt-1">Tell us what went wrong</p>
+                </div>
+                <form id="bugForm" class="space-y-6">
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">Problem Title</label>
+                        <input type="text" id="title" required class="input-premium" placeholder="Brief Summary">
+                    </div>
+                    <div class="grid grid-cols-2 gap-6">
+                        <div>
+                            <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">Problem Type</label>
+                            <select id="impactScope" class="input-premium">
+                                <option value="Single Packet">Single Packet</option>
+                                <option value="One Packet Affected">One Packet Affected</option>
+                                <option value="Multiple Packets">Multiple Packets</option>
+                                <option value="Entire System">Entire System</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">Video Link (Optional)</label>
+                            <input type="url" id="videoLink" class="input-premium" placeholder="Optional URL">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-6">
+                        <div>
+                            <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">User ID</label>
+                            <input type="text" id="userExternalId" class="input-premium" placeholder="Target User ID">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">Packet ID</label>
+                            <input type="text" id="packetId" class="input-premium" placeholder="Target Packet ID">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">What Happened?</label>
+                        <textarea id="description" required rows="4" class="input-premium resize-none" placeholder="Explain the anomaly..."></textarea>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <label class="file-btn text-center flex items-center justify-center gap-2">🖼️ Upload Screenshot <input type="file" id="imageInput" accept="image/*" class="hidden"></label>
+                        <label class="file-btn text-center flex items-center justify-center gap-2">📄 Upload File <input type="file" id="docInput" accept=".pdf,.doc,.docx,.txt" class="hidden"></label>
+                    </div>
+                    <button type="submit" class="w-full btn-primary mt-4">Submit Report</button>
+                </form>
+            </div>
+        </div>
+        <div class="lg:col-span-8 flex flex-col overflow-hidden p-10 space-y-8">
+            <div class="flex items-center justify-between">
+                <h2 class="text-2xl font-black text-slate-900 tracking-tight">Recent Reports</h2>
+                <span id="stats" class="bg-white px-6 py-2 rounded-2xl border border-slate-200 text-xs font-black text-slate-600 shadow-sm">0 REPORTS</span>
+            </div>
+            <div id="bugContainer" class="flex-1 overflow-y-auto space-y-4 pr-4"></div>
+        </div>
+    </main>
+
+    <!-- Bug Detail Modal -->
+    <div id="bugDetailModal" class="modal-overlay">
+        <div class="bg-white rounded-[3rem] w-full max-w-5xl p-12 shadow-2xl relative flex flex-col max-h-[90vh] overflow-hidden">
+            <button onclick="toggleModal(false)" class="absolute top-8 right-8 text-slate-300 hover:text-slate-900 text-3xl font-light transition-colors">&times;</button>
+            <div class="flex-1 overflow-y-auto pr-6 space-y-10">
+                <div class="flex items-center gap-6">
+                    <span id="detailSeverity" class="status-badge"></span>
+                    <h2 id="detailTitle" class="text-3xl font-black text-slate-900 tracking-tight"></h2>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-16">
+                    <div class="space-y-8">
+                        <div class="bg-slate-50 p-8 rounded-[2rem] border border-slate-100">
+                            <label class="text-[10px] font-black text-slate-400 uppercase mb-3 block tracking-widest">What Happened?</label>
+                            <p id="detailDesc" class="text-slate-600 leading-relaxed font-medium"></p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-8">
+                            <div>
+                                <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">Problem Type</label>
+                                <p id="detailImpact" class="font-bold text-slate-900"></p>
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">Status</label>
+                                <p id="detailStatus" class="font-black text-blue-600 uppercase tracking-widest"></p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-8">
+                            <div>
+                                <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">User ID</label>
+                                <p id="detailUserExtId" class="font-bold text-slate-900"></p>
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">Packet ID</label>
+                                <p id="detailPacketId" class="font-bold text-slate-900"></p>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">Report Date</label>
+                            <p id="detailDate" class="font-bold text-slate-500 uppercase"></p>
+                        </div>
+                    </div>
+                    <div class="space-y-8">
+                        <div id="mediaViewer" class="bg-slate-950 rounded-[2.5rem] overflow-hidden min-h-[400px] flex items-center justify-center border-[6px] border-white shadow-2xl">
+                        </div>
+                        <div id="mediaControls" class="flex gap-4 p-2 bg-white rounded-3xl border border-slate-100 shadow-sm overflow-x-auto">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentBugs = [];
+
+        async function checkAuth() {
+            const res = await fetch('/api/me');
+            if (!res.ok) window.location.href = '/';
+            const user = await res.json();
+            document.getElementById('userName').innerText = user.username;
+            document.getElementById('userDept').innerText = user.department || 'GENERAL';
+            document.getElementById('userAvatar').src = `https://ui-avatars.com/api/?name=${user.username}&background=2563eb&color=fff&bold=true`;
+            loadBugs();
+        }
+
+        function toggleDropdown() { document.getElementById('profileDropdown').classList.toggle('active'); }
+        function toggleModal(show) { document.getElementById('bugDetailModal').classList.toggle('active', show); }
+        window.onclick = function(e) { if (!e.target.closest('.relative')) document.getElementById('profileDropdown').classList.remove('active'); }
+
+        async function loadBugs() {
+            const res = await fetch('/api/bugs');
+            currentBugs = await res.json();
+            document.getElementById('stats').innerText = `${currentBugs.length} REPORTS`;
+            const container = document.getElementById('bugContainer');
+            container.innerHTML = currentBugs.map(bug => `
+                <div onclick="openBugDetail(${bug.id})" class="card-report flex items-center gap-6">
+                    <div class="w-12 h-12 rounded-2xl ${getSeverityClass(bug.severity)} flex items-center justify-center font-black text-xs uppercase shadow-sm">${(bug.severity || 'U')[0]}</div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-3">
+                            <span class="font-black text-slate-900 text-lg tracking-tight">${bug.title}</span>
+                            <span class="text-[10px] font-black text-slate-300">#${bug.id}</span>
+                        </div>
+                        <div class="flex items-center gap-4 text-[10px] text-slate-400 mt-1 font-bold uppercase tracking-widest">
+                            <span class="truncate max-w-[300px] normal-case font-medium text-slate-500">${bug.description}</span>
+                            <span>• ${bug.impact_scope || 'Single Packet'}</span>
+                            <span>• BY ${bug.reporter_name}</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <span class="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em]">${bug.status === 'Resolved' ? 'Fixed' : (bug.status === 'Pending' ? 'In Review' : bug.status)}</span>
+                        <div class="w-2 h-2 rounded-full ${bug.status === 'Resolved' ? 'bg-green-500' : 'bg-blue-400 shadow-[0_0_8px_rgba(59,130,246,0.5)] animate-pulse'}"></div>
+                    </div>
+                </div>
+            `).join('') || '<div class="p-20 text-center text-slate-300 font-black italic tracking-widest uppercase text-xl">-- SILENCE --</div>';
+        }
+
+        function openBugDetail(id) {
+            const bug = currentBugs.find(b => b.id === id);
+            if (!bug) return;
+            
+            document.getElementById('detailTitle').innerText = bug.title;
+            document.getElementById('detailDesc').innerText = bug.description;
+            document.getElementById('detailStatus').innerText = bug.status === 'Resolved' ? 'Fixed' : (bug.status === 'Pending' ? 'In Review' : bug.status);
+            document.getElementById('detailImpact').innerText = bug.impact_scope || 'Single Packet';
+            document.getElementById('detailUserExtId').innerText = bug.user_external_id || 'N/A';
+            document.getElementById('detailPacketId').innerText = bug.packet_id || 'N/A';
+            document.getElementById('detailDate').innerText = new Date(bug.created_at).toLocaleString();
+            
+            const sevEl = document.getElementById('detailSeverity');
+            sevEl.innerText = bug.severity || 'Unassigned';
+            sevEl.className = `status-badge ${getSeverityClass(bug.severity)}`;
+
+            const viewer = document.getElementById('mediaViewer');
+            const controls = document.getElementById('mediaControls');
+            viewer.innerHTML = '<p class="text-slate-500 font-black uppercase tracking-widest text-xs">No Evidence</p>';
+            controls.innerHTML = '';
+
+            if (bug.image_path) {
+                controls.innerHTML += `<button onclick="viewMedia('img', '${bug.image_path}')" class="w-16 h-16 rounded-2xl flex-shrink-0 overflow-hidden border-2 border-transparent hover:border-blue-600 transition-all"><img src="${bug.image_path}" class="w-full h-full object-cover"></button>`;
+                viewMedia('img', bug.image_path);
+            }
+            if (bug.video_link) {
+                controls.innerHTML += `<button onclick="viewMedia('vid', '${bug.video_link}')" class="w-16 h-16 bg-slate-900 rounded-2xl flex-shrink-0 flex items-center justify-center text-2xl border-2 border-transparent hover:border-blue-600 transition-all">🎥</button>`;
+                if (!bug.image_path) viewMedia('vid', bug.video_link);
+            }
+            if (bug.doc_path) {
+                controls.innerHTML += `<a href="${bug.doc_path}" target="_blank" class="w-16 h-16 bg-blue-50 rounded-2xl flex-shrink-0 flex items-center justify-center text-2xl border-2 border-transparent hover:border-blue-600 transition-all">📄</a>`;
+            }
+
+            toggleModal(true);
+        }
+
+        function viewMedia(type, url) {
+            const viewer = document.getElementById('mediaViewer');
+            if (type === 'img') viewer.innerHTML = `<img src="${url}" class="max-w-full max-h-full object-contain">`;
+            else if (type === 'vid') {
+                if (url.includes('youtube.com') || url.includes('youtu.be')) {
+                    const vidId = url.split('v=')[1] || url.split('/').pop();
+                    viewer.innerHTML = `<iframe class="w-full h-full" src="https://www.youtube.com/embed/${vidId}" frameborder="0" allowfullscreen></iframe>`;
+                } else viewer.innerHTML = `<video src="${url}" controls class="max-w-full max-h-full"></video>`;
+            }
+        }
+
+        function getSeverityClass(s) { if(!s) return 'severity-unassigned'; const sev = s.toLowerCase(); if(sev === 'critical') return 'severity-critical'; if(sev === 'high') return 'severity-high'; if(sev === 'medium') return 'severity-medium'; if(sev === 'unassigned') return 'severity-unassigned'; return 'severity-low'; }
+        async function logout() { await fetch('/api/logout', { method: 'POST' }); window.location.href = '/'; }
+
+        document.getElementById('bugForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('title', document.getElementById('title').value);
+            formData.append('description', document.getElementById('description').value);
+            formData.append('impact_scope', document.getElementById('impactScope').value);
+            formData.append('video_link', document.getElementById('videoLink').value);
+            formData.append('user_external_id', document.getElementById('userExternalId').value);
+            formData.append('packet_id', document.getElementById('packetId').value);
+            const image = document.getElementById('imageInput').files[0];
+            const doc = document.getElementById('docInput').files[0];
+            if (image) formData.append('image', image);
+            if (doc) formData.append('document', doc);
+            const res = await fetch('/api/bugs', { method: 'POST', body: formData });
+            if (res.ok) { document.getElementById('bugForm').reset(); loadBugs(); }
+        });
+
+        checkAuth();
+        setInterval(loadBugs, 30000);
+    </script>
+</body>
+</html>

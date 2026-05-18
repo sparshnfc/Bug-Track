@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BUG-TRACK | Admin Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --accent: #3b82f6; --accent-glow: rgba(59, 130, 246, 0.5); --glass: rgba(255, 255, 255, 0.7); }
+        body { background: #f0f2f5; font-family: 'Outfit', sans-serif; color: #1e293b; }
+        .glass-panel { background: var(--glass); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.3); box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07); }
+        .sidebar-item { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); color: #64748b; cursor: pointer; border-radius: 1rem; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 12px; }
+        .sidebar-item:hover { color: var(--accent); background: rgba(59, 130, 246, 0.05); transform: translateX(4px); }
+        .sidebar-item.active { color: #ffffff; background: var(--accent); box-shadow: 0 10px 15px -3px var(--accent-glow); }
+        .view-section { display: none; }
+        .view-section.active { display: block; animation: slideUp 0.4s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .input-premium { background: white; border: 1.5px solid #e2e8f0; border-radius: 1rem; padding: 0.8rem 1.2rem; width: 100%; transition: all 0.2s; }
+        .input-premium:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
+        .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; }
+        .severity-critical { background: #fee2e2; color: #991b1b; }
+        .severity-high { background: #ffedd5; color: #9a3412; }
+        .severity-medium { background: #fef9c3; color: #854d0e; }
+        .severity-low { background: #f0fdf4; color: #166534; }
+        .severity-unassigned { background: #f1f5f9; color: #64748b; }
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); z-index: 100; align-items: center; justify-content: center; }
+        .modal-overlay.active { display: flex; }
+        .card-hover { transition: all 0.3s; }
+        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05); border-color: var(--accent); }
+        .copy-success {
+            animation: copyPulse 0.35s ease-out;
+            box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.22);
+            transform: scale(1.04);
+        }
+        @keyframes copyPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+    <!-- Sidebar -->
+    <aside id="sidebar" class="w-72 bg-white border-r border-slate-200 flex-shrink-0 flex flex-col p-8 space-y-10">
+        <div class="flex items-center gap-4">
+            <img src="/logo.png" alt="KG Logo" class="w-10 h-10 object-contain rounded-xl shadow-md shadow-blue-500/10">
+            <div>
+                <h1 class="text-xl font-black text-slate-900 tracking-tighter italic leading-none">BUG-TRACK</h1>
+                <span class="text-[9px] font-black text-blue-600 uppercase tracking-[0.2em]">Bug Tracker/Status</span>
+            </div>
+        </div>
+        
+        <nav class="flex-1 space-y-3">
+            <div onclick="switchView('dashboard')" id="nav-dashboard" class="sidebar-item active p-4">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                <span>Dashboard</span>
+            </div>
+            <div onclick="switchView('registry')" id="nav-registry" class="sidebar-item p-4">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                <span>Team Members</span>
+            </div>
+        </nav>
+        
+        <div class="p-6 glass-panel rounded-2xl">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Status</p>
+            <div class="flex items-center gap-2">
+                <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span class="text-xs font-bold text-slate-700">System Running Normally</span>
+            </div>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col overflow-hidden">
+        <!-- Header -->
+        <header class="h-20 bg-white/50 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-10 flex-shrink-0 z-20">
+            <h2 id="pageTitle" class="text-xl font-black text-slate-900 uppercase tracking-tight">Dashboard</h2>
+            
+            <div class="flex items-center gap-6">
+                <div class="relative">
+                    <button onclick="toggleDropdown()" class="flex items-center gap-4 hover:bg-white p-2 rounded-2xl transition-all border border-transparent hover:border-slate-200 group">
+                        <div class="text-right">
+                            <p id="adminName" class="font-bold text-slate-900 leading-none">Admin</p>
+                            <span id="adminRole" class="text-[9px] font-black text-blue-600 uppercase tracking-widest">Admin Access</span>
+                        </div>
+                        <img id="adminAvatar" src="" class="w-11 h-11 rounded-2xl border-2 border-white shadow-sm group-hover:shadow-md transition-all" alt="Avatar">
+                    </button>
+
+                    <div id="profileDropdown" class="absolute top-full right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-slate-100 p-2 hidden z-50">
+                        <button onclick="logout()" class="w-full flex items-center gap-3 p-4 text-xs font-bold text-red-500 hover:bg-red-50 rounded-xl transition-all">
+                            <span>🚪</span> Sign Out
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-10 space-y-10">
+            <!-- Dashboard View -->
+            <section id="dashboardView" class="view-section active space-y-8">
+                <div class="flex items-end justify-between">
+                    <div>
+                        <h2 class="text-4xl font-black text-slate-900 tracking-tight">Report Overview</h2>
+                        <p class="text-slate-500 font-medium mt-1">View and manage all reports</p>
+                    </div>
+                    <div class="flex gap-4">
+                        <div class="bg-white px-6 py-3 rounded-2xl border border-slate-200 shadow-sm">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Active</p>
+                            <p id="bugStats" class="text-2xl font-black text-slate-900">0</p>
+                        </div>
+                    </div>
+                </div>
+                <div id="adminBugContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+            </section>
+
+            <!-- Personnel View -->
+            <section id="registryView" class="view-section space-y-8">
+                <div class="flex items-center justify-between gap-4 flex-wrap">
+                    <div>
+                        <h2 class="text-4xl font-black text-slate-900 tracking-tight">Add Team Staff</h2>
+                        <p class="text-slate-500 font-medium mt-1">Manage staff access and assignments</p>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <button onclick="toggleModal('deptModal', true)" class="bg-blue-600 text-white px-6 py-4 rounded-2xl font-black uppercase text-[11px] tracking-widest shadow-xl shadow-blue-500/20 hover:bg-blue-700 transition-all hover:scale-105 active:scale-95">Add Department</button>
+                        <button onclick="toggleModal('provisionModal', true)" class="bg-slate-900 text-white px-8 py-4 rounded-2xl font-black uppercase text-[11px] tracking-widest shadow-xl shadow-slate-900/20 hover:bg-black transition-all hover:scale-105 active:scale-95">Add Staff Member</button>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-[2.5rem] overflow-hidden border border-slate-200 shadow-sm">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="bg-slate-50/50 text-[11px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                                <th class="px-10 py-6 text-left">Staff</th>
+                                <th class="px-10 py-6 text-left">Department</th>
+                                <th class="px-10 py-6 text-left">Role</th>
+                                <th class="px-10 py-6 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="userTableBody"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Departments View -->
+            <section id="deptsView" class="view-section space-y-8">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-4xl font-black text-slate-900 tracking-tight">Department Creation</h2>
+                        <p class="text-slate-500 font-medium mt-1">Define and manage departments</p>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+                    <div class="md:col-span-1 space-y-6">
+                        <div class="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm space-y-6">
+                            <h3 class="font-black text-lg uppercase tracking-tight">Create Department</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">Department Name</label>
+                                    <input type="text" id="newDeptName" class="input-premium" placeholder="e.g. Cybersecurity">
+                                </div>
+                                <button onclick="createDept()" class="w-full bg-blue-600 text-white p-4 rounded-2xl font-black uppercase text-[11px] tracking-widest shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-all">Add Department</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="md:col-span-2">
+                        <div class="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden">
+                            <div id="deptList" class="divide-y divide-slate-100"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Provision Modal -->
+    <div id="provisionModal" class="modal-overlay">
+        <div class="bg-white rounded-[3rem] w-full max-w-xl p-12 shadow-2xl relative">
+            <button onclick="toggleModal('provisionModal', false)" class="absolute top-8 right-8 text-slate-300 hover:text-slate-900 text-3xl font-light transition-colors">&times;</button>
+            <h2 class="text-3xl font-black text-slate-900 mb-2 uppercase tracking-tight">Add Staff </h2>
+            <p class="text-slate-400 font-medium mb-10">Grant operational access to the system</p>
+            
+            <form id="createUserForm" class="space-y-6">
+                <div class="grid grid-cols-2 gap-6">
+                    <div><label class="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">Username</label><input type="text" id="newUsername" required class="input-premium"></div>
+                    <div><label class="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">Password</label><input type="password" id="newPassword" required class="input-premium"></div>
+                </div>
+                <div class="grid grid-cols-2 gap-6">
+                    <div><label class="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">Dept</label><select id="newDeptSelect" class="input-premium"></select></div>
+                    <div><label class="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">Role</label><select id="newRole" class="input-premium"><option value="user">Standard User</option><option value="admin">Administrator</option></select></div>
+                </div>
+                <button type="submit" class="w-full bg-slate-900 text-white p-5 rounded-[1.5rem] font-black uppercase text-[11px] tracking-widest hover:bg-black transition-all shadow-xl shadow-slate-900/10 mt-4">Generate Clearance</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bug Detail Modal -->
+    <div id="bugDetailModal" class="modal-overlay">
+        <div class="bg-white rounded-[3rem] w-full max-w-4xl p-10 shadow-2xl relative flex flex-col max-h-[calc(100vh-2rem)] overflow-hidden">
+            <button onclick="toggleModal('bugDetailModal', false)" class="absolute top-8 right-8 text-slate-300 hover:text-slate-900 text-3xl font-light transition-colors">&times;</button>
+            <div class="flex-1 min-h-0 pr-4 space-y-8 overflow-y-auto">
+                <div class="flex items-center gap-6">
+                    <span id="detailSeverityBadge" class="status-badge"></span>
+                    <h2 id="detailTitle" class="text-3xl font-black text-slate-900 tracking-tight"></h2>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                    <div class="space-y-8">
+                        <div class="bg-slate-50 p-8 rounded-[2rem] border border-slate-100">
+                            <label class="text-[10px] font-black text-slate-400 uppercase mb-3 block tracking-widest">What Happened?</label>
+                            <p id="detailDesc" class="text-slate-600 leading-relaxed font-medium"></p>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                                <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">Reporter</label>
+                                <p id="detailReporter" class="font-bold text-slate-900"></p>
+                            </div>
+                            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                                <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">Type</label>
+                                <p id="detailImpact" class="font-bold text-slate-900"></p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                                <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">User ID</label>
+                                <p id="detailUserExtId" class="font-bold text-slate-900"></p>
+                            </div>
+                            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                                <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">Packet ID</label>
+                                <p id="detailPacketId" class="font-bold text-slate-900"></p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 gap-3 pt-4">
+                            <div>
+                                <label class="text-[10px] font-black text-slate-400 uppercase mb-3 block tracking-widest">Video Link</label>
+                                <div class="flex items-center gap-3">
+                                    <input id="detailVideoLink" type="url" placeholder="Paste video URL here" class="input-premium flex-1" />
+                                    <button id="detailCopyVideoLinkBtn" type="button" onclick="copyBugVideoLink()" class="px-4 py-3 rounded-2xl bg-slate-900 text-white text-[11px] font-bold uppercase tracking-widest hover:bg-black transition-all">Copy</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-8 pt-4">
+                            <div>
+                                <label class="text-[10px] font-black text-slate-400 uppercase mb-3 block tracking-widest">Assign Severity</label>
+                                <select id="detailSeveritySelect" class="input-premium font-bold text-red-600 uppercase">
+                                    <option value="Unassigned">Unassigned</option>
+                                    <option value="Low">Low</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="High">High</option>
+                                    <option value="Critical">Critical</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-black text-slate-400 uppercase mb-3 block tracking-widest">Update Status</label>
+                                <select id="detailStatusSelect" class="input-premium font-bold text-blue-600 uppercase">
+                                    <option value="Pending">In Review</option>
+                                    <option value="In Progress">In Progress</option>
+                                    <option value="Resolved">Fixed</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-8">
+                        <div class="relative group">
+                            <div id="mediaViewer" class="bg-slate-950 rounded-[2.5rem] overflow-hidden h-[280px] flex items-center justify-center border-[6px] border-white shadow-2xl">
+                            </div>
+                        </div>
+                        <div id="mediaControls" class="flex gap-4 p-2 bg-white rounded-3xl border border-slate-100 shadow-sm overflow-x-auto">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-12 pt-8 border-t border-slate-100 flex justify-end gap-4">
+                <button onclick="toggleModal('bugDetailModal', false)" class="px-8 py-4 rounded-2xl font-bold text-slate-400 uppercase text-[11px] hover:bg-slate-50 transition-all">Dismiss</button>
+                <button onclick="saveBugStatus()" class="bg-slate-900 text-white px-12 py-4 rounded-2xl font-black uppercase text-[11px] tracking-widest hover:bg-black transition-all shadow-xl shadow-slate-900/10">Commit Evaluation</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="videoPopupModal" class="modal-overlay">
+        <div class="bg-white rounded-[2.5rem] w-full max-w-[95vw] p-4 shadow-2xl relative flex flex-col max-h-[95vh] overflow-hidden">
+            <button onclick="closeVideoPopup()" class="absolute top-5 right-5 text-slate-300 hover:text-slate-900 text-3xl font-light transition-colors">&times;</button>
+            <div class="flex-1 flex items-stretch justify-center bg-slate-950 rounded-[2rem] overflow-hidden">
+                <iframe id="videoPopupIframe" class="w-full h-full min-h-[75vh] border-none" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+
+    <div id="deptModal" class="modal-overlay">
+        <div class="bg-white rounded-[3rem] w-full max-w-md p-10 shadow-2xl relative">
+            <button onclick="toggleModal('deptModal', false)" class="absolute top-6 right-6 text-slate-300 hover:text-slate-900 text-3xl font-light transition-colors">&times;</button>
+            <div class="space-y-6">
+                <h2 class="text-3xl font-black text-slate-900 uppercase tracking-tight">Add Department</h2>
+                <p class="text-slate-500 font-medium">Create a new department unit for team assignments.</p>
+                <div>
+                    <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">Department Name</label>
+                    <input id="newDeptNameModal" type="text" class="input-premium" placeholder="e.g. Cybersecurity" />
+                </div>
+                <div class="flex justify-end gap-3">
+                    <button onclick="toggleModal('deptModal', false)" class="px-6 py-3 rounded-2xl border border-slate-200 text-slate-600 font-bold uppercase text-[11px] tracking-widest hover:bg-slate-50 transition-all">Cancel</button>
+                    <button onclick="createDeptModal()" class="px-6 py-3 rounded-2xl bg-blue-600 text-white font-black uppercase text-[11px] tracking-widest hover:bg-blue-700 transition-all">Create Department</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentBugs = [];
+        let currentDepts = [];
+        let selectedBugId = null;
+
+        async function checkAuth() {
+            const res = await fetch('/api/me');
+            if (!res.ok) window.location.href = '/';
+            const user = await res.json();
+            if (user.role !== 'admin') window.location.href = '/user';
+            document.getElementById('adminName').innerText = user.username;
+            document.getElementById('adminAvatar').src = `https://ui-avatars.com/api/?name=${user.username}&background=2563eb&color=fff&bold=true`;
+            console.log('USER /api/me:', user);
+            function toTitleCase(str) {
+                if (!str) return '';
+                return String(str).toLowerCase().split(' ').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
+            }
+            // Accept several possible department field names returned by different backends
+            const deptVal = user.department || user.dept || user.department_name || user.unit || user.group || user.role || '';
+            const roleEl = document.getElementById('adminRole');
+            if (roleEl) roleEl.innerText = toTitleCase(deptVal) || 'Admin Access';
+            
+            // Sequential loading to avoid race conditions in dropdowns
+            await loadDepts();
+            await Promise.all([loadBugs(), loadUsers()]);
+        }
+
+        function toggleSidebar() {
+            const sb = document.getElementById('sidebar');
+            sb.classList.toggle('collapsed');
+        }
+
+        function toggleDropdown() { document.getElementById('profileDropdown').classList.toggle('hidden'); }
+        window.onclick = function(e) { if (!e.target.closest('.relative')) document.getElementById('profileDropdown').classList.add('hidden'); }
+
+        function switchView(v) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.getElementById(v + 'View').classList.add('active');
+            document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
+            document.getElementById('nav-' + v).classList.add('active');
+            document.getElementById('pageTitle').innerText = v === 'dashboard' ? 'Dashboard' : (v === 'registry' ? 'Add Staff' : 'Department Creation');
+            
+            if (v === 'dashboard') loadBugs();
+            if (v === 'registry') loadUsers();
+            if (v === 'depts') loadDepts();
+        }
+
+        function toggleModal(id, show) { document.getElementById(id).classList.toggle('active', show); }
+
+        async function loadDepts() {
+            try {
+                console.log('Fetching Departments...');
+                const res = await fetch('/api/admin/departments');
+                if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+                currentDepts = await res.json();
+                console.log('Departments Loaded:', currentDepts);
+                
+                const select = document.getElementById('newDeptSelect');
+                if (select) select.innerHTML = currentDepts.map(d => `<option value="${d.name}">${d.name}</option>`).join('');
+                
+                const list = document.getElementById('deptList');
+                if (list) {
+                    list.innerHTML = currentDepts.map(d => `
+                        <div class="flex items-center justify-between p-8 hover:bg-slate-50 transition-all group">
+                            <div class="flex items-center gap-4 flex-1">
+                                <div class="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center font-black text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-600 transition-all">${d.name[0]}</div>
+                                <input type="text" value="${d.name}" onchange="renameDept(${d.id}, this.value)" class="font-bold text-slate-900 bg-transparent border-none focus:ring-0 w-full cursor-pointer hover:bg-white p-2 rounded-lg">
+                            </div>
+                            <button onclick="deleteDept(${d.id})" class="opacity-0 group-hover:opacity-100 p-2 text-red-400 hover:text-red-600 transition-all">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                        </div>
+                    `).join('') || '<div class="p-20 text-center text-slate-300 font-black italic tracking-widest uppercase text-xl">-- NO UNITS DEFINED --</div>';
+                }
+            } catch (e) {
+                console.error('Failed to load departments:', e);
+            }
+        }
+
+        async function createDept() {
+            const input = document.getElementById('newDeptName');
+            const name = input.value.trim();
+            console.log('Attempting to create unit:', name);
+            if (!name) return;
+            
+            try {
+                console.log('POSTing to /api/admin/departments...');
+                const res = await fetch('/api/admin/departments', { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ name }) 
+                });
+                
+                const contentType = res.headers.get('content-type');
+                let result = {};
+                if (contentType && contentType.includes('application/json')) {
+                    result = await res.json();
+                } else {
+                    throw new Error('Server returned non-JSON response');
+                }
+
+                if (res.ok) {
+                    input.value = '';
+                    await loadDepts();
+                } else {
+                    alert('Failed to add unit: ' + (result.error || 'Unknown error'));
+                }
+            } catch (e) {
+                console.error('Creation error:', e);
+                alert('Network Error: ' + e.message);
+            }
+        }
+
+        async function createDeptModal() {
+            const input = document.getElementById('newDeptNameModal');
+            const name = input.value.trim();
+            if (!name) return;
+
+            try {
+                const res = await fetch('/api/admin/departments', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name })
+                });
+                const contentType = res.headers.get('content-type');
+                let result = {};
+                if (contentType && contentType.includes('application/json')) {
+                    result = await res.json();
+                }
+                if (res.ok) {
+                    input.value = '';
+                    toggleModal('deptModal', false);
+                    await loadDepts();
+                } else {
+                    alert('Failed to add unit: ' + (result.error || 'Unknown error'));
+                }
+            } catch (e) {
+                console.error('Creation error:', e);
+                alert('Network Error: ' + e.message);
+            }
+        }
+
+        async function renameDept(id, newName) {
+            await fetch(`/api/admin/departments/${id}`, { 
+                method: 'PUT', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify({ name: newName }) 
+            });
+            await loadDepts();
+            loadUsers(); // Refresh users to update their dropdowns
+        }
+
+        async function deleteDept(id) {
+            if (confirm('Remove Department?')) {
+                await fetch(`/api/admin/departments/${id}`, { method: 'DELETE' });
+                loadDepts();
+            }
+        }
+
+        async function loadBugs() {
+            try {
+                console.log('Fetching Incident Reports...');
+                const res = await fetch('/api/bugs');
+                if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+                currentBugs = await res.json();
+                console.log('Reports Loaded:', currentBugs.length);
+                document.getElementById('bugStats').innerText = currentBugs.length;
+                const container = document.getElementById('adminBugContainer');
+                container.innerHTML = currentBugs.map(bug => `
+                    <div onclick="openBugDetail(${bug.id})" class="bg-white p-6 rounded-3xl border border-slate-200 card-hover cursor-pointer group">
+                        <div class="flex items-start justify-between mb-4">
+                            <span class="status-badge ${getSeverityClass(bug.severity)}">${bug.severity || 'Unassigned'}</span>
+                            <span class="text-[10px] font-black text-slate-300">#${bug.id}</span>
+                        </div>
+                        <h3 class="font-black text-xl text-slate-900 tracking-tight mb-3 group-hover:text-blue-600 transition-all">${bug.title}</h3>
+                        <p class="text-slate-500 text-sm font-medium line-clamp-2 mb-4">${bug.description}</p>
+                        <div class="flex items-center justify-between pt-4 border-t border-slate-50">
+                            <div class="flex items-center gap-2">
+                                <div class="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-[7px] font-black text-slate-400">${bug.reporter_name[0]}</div>
+                                <span class="text-[9px] font-bold text-slate-900 uppercase tracking-widest">${bug.reporter_name}</span>
+                            </div>
+                            <span class="text-[9px] font-black text-blue-600 uppercase tracking-widest">${bug.status === 'Resolved' ? 'Fixed' : (bug.status === 'Pending' ? 'In Review' : bug.status)}</span>
+                        </div>
+                    </div>
+                `).join('') || '<div class="col-span-full py-20 text-center text-slate-300 font-black italic tracking-widest uppercase text-xl">-- NO ACTIVE INCIDENTS --</div>';
+                container.innerHTML = html;
+            } catch (e) {
+                console.error('Failed to load bugs:', e);
+            }
+        }
+
+        function openBugDetail(id) {
+            const bug = currentBugs.find(b => b.id === id);
+            if (!bug) return;
+            selectedBugId = id;
+            
+            document.getElementById('detailTitle').innerText = bug.title;
+            document.getElementById('detailDesc').innerText = bug.description;
+            document.getElementById('detailReporter').innerText = bug.reporter_name;
+            document.getElementById('detailImpact').innerText = bug.impact_scope || 'Single Packet';
+            document.getElementById('detailUserExtId').innerText = bug.user_external_id || 'N/A';
+            document.getElementById('detailPacketId').innerText = bug.packet_id || 'N/A';
+            document.getElementById('detailVideoLink').value = bug.video_link || '';
+            document.getElementById('detailStatusSelect').value = bug.status;
+            document.getElementById('detailSeveritySelect').value = bug.severity || 'Unassigned';
+            
+            const badge = document.getElementById('detailSeverityBadge');
+            badge.innerText = bug.severity || 'Unassigned';
+            badge.className = `status-badge ${getSeverityClass(bug.severity)}`;
+
+            const viewer = document.getElementById('mediaViewer');
+            const controls = document.getElementById('mediaControls');
+            viewer.innerHTML = '<p class="text-slate-500 font-black uppercase tracking-widest text-xs">No Evidence Evidence</p>';
+            controls.innerHTML = '';
+
+            if (bug.image_path) {
+                controls.innerHTML += `<button onclick="viewMedia('img', '${bug.image_path}')" class="w-16 h-16 rounded-2xl flex-shrink-0 overflow-hidden border-2 border-transparent hover:border-blue-600 transition-all"><img src="${bug.image_path}" class="w-full h-full object-cover"></button>`;
+                viewMedia('img', bug.image_path);
+            }
+            if (bug.video_link) {
+                controls.innerHTML += `<button onclick="openVideoPopup('${bug.video_link}')" class="w-16 h-16 bg-slate-900 rounded-2xl flex-shrink-0 flex items-center justify-center text-2xl border-2 border-transparent hover:border-blue-600 transition-all">🎥</button>`;
+                if (!bug.image_path) viewer.innerHTML = `<p class="text-slate-400 uppercase tracking-widest text-xs font-black">Tap the play icon to open the video</p>`;
+            }
+            if (bug.doc_path) {
+                controls.innerHTML += `<a href="${bug.doc_path}" target="_blank" class="w-16 h-16 bg-blue-50 rounded-2xl flex-shrink-0 flex items-center justify-center text-2xl border-2 border-transparent hover:border-blue-600 transition-all">📄</a>`;
+            }
+
+            toggleModal('bugDetailModal', true);
+        }
+
+        function viewMedia(type, url) {
+            const viewer = document.getElementById('mediaViewer');
+            if (type === 'img') {
+                viewer.innerHTML = `<img src="${url}" class="max-w-full max-h-full object-contain animate-fadeIn">`;
+            } else if (type === 'vid') {
+                if (url.includes('youtube.com') || url.includes('youtu.be')) {
+                    const vidId = url.split('v=')[1] || url.split('/').pop();
+                    viewer.innerHTML = `<iframe class="w-full h-full" src="https://www.youtube.com/embed/${vidId}" frameborder="0" allowfullscreen></iframe>`;
+                } else {
+                    viewer.innerHTML = `<video src="${url}" controls class="max-w-full max-h-full"></video>`;
+                }
+            }
+        }
+
+        async function saveBugStatus() {
+            const status = document.getElementById('detailStatusSelect').value;
+            const severity = document.getElementById('detailSeveritySelect').value;
+            const video_link = document.getElementById('detailVideoLink').value.trim();
+            const payload = { status, severity };
+            if (video_link) payload.video_link = video_link;
+            const res = await fetch(`/api/bugs/${selectedBugId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            if (res.ok) { toggleModal('bugDetailModal', false); loadBugs(); }
+        }
+
+        function copyBugVideoLink() {
+            const input = document.getElementById('detailVideoLink');
+            const link = input ? input.value.trim() : '';
+            if (!link) return;
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(link)
+                    .then(() => animateCopyButton())
+                    .catch(() => {
+                        if (copyTextFallback(link)) animateCopyButton();
+                    });
+            } else {
+                if (copyTextFallback(link)) animateCopyButton();
+            }
+        }
+
+        function copyTextFallback(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.top = '-9999px';
+            textarea.style.left = '-9999px';
+            document.body.appendChild(textarea);
+            textarea.select();
+            textarea.setSelectionRange(0, textarea.value.length);
+
+            let success = false;
+            try {
+                success = document.execCommand('copy');
+            } catch (err) {
+                success = false;
+            }
+            document.body.removeChild(textarea);
+            return success;
+        }
+
+        function openVideoPopup(url) {
+            const frame = document.getElementById('videoPopupIframe');
+            if (!frame) return;
+            if (url.includes('youtube.com') || url.includes('youtu.be')) {
+                const vidId = url.split('v=')[1] || url.split('/').pop();
+                frame.src = `https://www.youtube.com/embed/${vidId}`;
+            } else {
+                frame.src = url;
+            }
+            toggleModal('videoPopupModal', true);
+        }
+
+        function closeVideoPopup() {
+            const frame = document.getElementById('videoPopupIframe');
+            if (frame) frame.src = '';
+            toggleModal('videoPopupModal', false);
+        }
+
+        function animateCopyButton() {
+            const button = document.getElementById('detailCopyVideoLinkBtn');
+            if (!button) return;
+            button.classList.add('copy-success');
+            setTimeout(() => button.classList.remove('copy-success'), 350);
+        }
+
+        async function loadUsers() {
+            try {
+                console.log('Fetching Personnel...');
+                if (currentDepts.length === 0) await loadDepts();
+                const res = await fetch('/api/admin/users');
+                if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+                const users = await res.json();
+                console.log('Personnel Loaded:', users.length);
+                const body = document.getElementById('userTableBody');
+                const rowsHtml = users.map(user => `
+                    <tr class="hover:bg-slate-50 transition-all group">
+                        <td class="px-10 py-8">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center font-black text-blue-600">${user.username[0]}</div>
+                                <span class="font-black text-slate-900">${user.username}</span>
+                            </div>
+                        </td>
+                        <td class="px-10 py-8">
+                            <select onchange="updateUser(${user.id}, this)" class="bg-white border border-slate-100 rounded-lg px-4 py-2 font-bold text-xs text-slate-600 focus:outline-none focus:border-blue-600">
+                                ${currentDepts.map(d => `<option value="${d.name}">${d.name}</option>`).join('')}
+                                ${!currentDepts.find(d => d.name === user.department) ? `<option value="${user.department}">${user.department}</option>` : ''}
+                            </select>
+                        </td>
+                        <td class="px-10 py-8">
+                            <select onchange="updateUser(${user.id}, this)" class="bg-blue-600 text-white rounded-lg px-4 py-2 font-black text-[10px] uppercase tracking-widest focus:outline-none">
+                                <option value="user">Standard</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </td>
+                        <td class="px-10 py-8 text-right">
+                            <button onclick="deleteUser(${user.id})" class="opacity-0 group-hover:opacity-100 px-4 py-2 bg-red-50 text-red-500 rounded-lg font-black text-[10px] uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all">Terminate</button>
+                        </td>
+                    </tr>
+                `).join('');
+
+                body.innerHTML = rowsHtml || '<tr><td colspan="4" class="p-20 text-center text-slate-300 font-black italic tracking-widest uppercase text-xl">-- REGISTRY EMPTY --</td></tr>';
+
+                // Ensure each rendered select reflects the actual user values (fixes mismatches when dept lists load separately)
+                users.forEach((user, idx) => {
+                    const row = body.children[idx];
+                    if (!row) return;
+                    const selects = row.querySelectorAll('select');
+                    const deptSelect = selects[0];
+                    const roleSelect = selects[1];
+                    if (deptSelect) {
+                        try { deptSelect.value = user.department || ''; } catch (e) { /* ignore */ }
+                    }
+                    if (roleSelect) {
+                        try { roleSelect.value = user.role || 'user'; } catch (e) { /* ignore */ }
+                    }
+                });
+            } catch (e) {
+                console.error('Failed to load users:', e);
+            }
+        }
+
+        async function updateUser(id, el) {
+            const row = el.closest('tr');
+            const dept = row.querySelectorAll('select')[0].value;
+            const role = row.querySelectorAll('select')[1].value;
+            await fetch(`/api/admin/users/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ department: dept, role: role }) });
+        }
+
+        async function deleteUser(id) { if (confirm('Terminate staff?')) { await fetch(`/api/admin/users/${id}`, { method: 'DELETE' }); loadUsers(); } }
+        async function logout() { await fetch('/api/logout', { method: 'POST' }); window.location.href = '/'; }
+        function getSeverityClass(s) { if(!s) return 'severity-unassigned'; const sev = s.toLowerCase(); if(sev === 'critical') return 'severity-critical'; if(sev === 'high') return 'severity-high'; if(sev === 'medium') return 'severity-medium'; if(sev === 'unassigned') return 'severity-unassigned'; return 'severity-low'; }
+
+        document.getElementById('createUserForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = { 
+                username: document.getElementById('newUsername').value,
+                password: document.getElementById('newPassword').value,
+                department: document.getElementById('newDeptSelect').value,
+                role: document.getElementById('newRole').value
+            };
+            const res = await fetch('/api/admin/create-user', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            if (res.ok) { toggleModal('provisionModal', false); document.getElementById('createUserForm').reset(); loadUsers(); }
+        });
+
+        checkAuth();
+    </script>
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BUG-TRACK | Security Login</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --accent: #3b82f6; }
+        body { background: #f0f2f5; font-family: 'Outfit', sans-serif; }
+        .input-premium { background: white; border: 1.5px solid #e2e8f0; border-radius: 1.25rem; padding: 1.2rem; width: 100%; transition: all 0.2s; font-size: 14px; }
+        .input-premium:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
+        .btn-primary { background: #0f172a; color: white; border-radius: 1.25rem; padding: 1.2rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.15em; font-size: 12px; transition: all 0.3s; width: 100%; }
+        .btn-primary:hover { background: #000; transform: translateY(-2px); box-shadow: 0 10px 20px -5px rgba(0,0,0,0.2); }
+        .glass-panel { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.3); }
+    </style>
+</head>
+<body class="flex h-screen items-center justify-center p-6 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.05),transparent),radial-gradient(circle_at_bottom_left,rgba(59,130,246,0.05),transparent)]">
+    <div class="glass-panel p-16 rounded-[4rem] w-full max-w-md shadow-2xl text-center relative overflow-hidden">
+        <div class="absolute -top-24 -left-24 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl"></div>
+        <div class="absolute -bottom-24 -right-24 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl"></div>
+        
+        <div class="relative z-10">
+            <div class="mb-14">
+                <img src="/logo.png" alt="KG Logo" class="w-20 h-20 object-contain mx-auto mb-6 rounded-[1.5rem] shadow-xl shadow-blue-500/10">
+                <h1 class="text-4xl font-black text-slate-900 tracking-tighter italic">BUG-TRACK</h1>
+                <p class="text-slate-400 text-[10px] font-black uppercase tracking-[0.3em] mt-3">Bug Tracking & Resolution Engine</p>
+            </div>
+            
+            <div id="error" class="hidden bg-red-50 text-red-600 p-5 rounded-2xl text-[11px] font-bold mb-8 border border-red-100 uppercase tracking-wider"></div>
+            
+            <form id="loginForm" class="space-y-6">
+                <div class="space-y-4">
+                    <input type="text" id="username" placeholder="Employee ID" required class="input-premium">
+                    <input type="password" id="password" placeholder="Access Code" required class="input-premium">
+                </div>
+                <button type="submit" class="btn-primary mt-4">Login</button>
+            </form>
+            
+            <p class="text-[9px] font-bold text-slate-300 uppercase tracking-widest mt-12">Authorized User Only</p>
+        </div>
+    </div>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            if (res.ok) {
+                const user = await res.json();
+                window.location.href = user.role === 'admin' ? '/admin' : '/user';
+            } else {
+                const err = await res.json();
+                const errEl = document.getElementById('error');
+                errEl.innerText = err.error;
+                errEl.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
