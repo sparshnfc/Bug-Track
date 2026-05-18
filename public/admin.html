@@ -100,19 +100,47 @@
         <div class="flex-1 overflow-y-auto p-10 space-y-10">
             <!-- Dashboard View -->
             <section id="dashboardView" class="view-section active space-y-8">
-                <div class="flex items-end justify-between">
+                <div class="flex items-end justify-between gap-4 flex-wrap">
                     <div>
                         <h2 class="text-4xl font-black text-slate-900 tracking-tight">Report Overview</h2>
                         <p class="text-slate-500 font-medium mt-1">View and manage all reports</p>
                     </div>
-                    <div class="flex gap-4">
-                        <div class="bg-white px-6 py-3 rounded-2xl border border-slate-200 shadow-sm">
-                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Active</p>
-                            <p id="bugStats" class="text-2xl font-black text-slate-900">0</p>
+                    <div class="flex items-center justify-between gap-4 flex-wrap w-full min-w-0">
+                        <div class="flex items-center gap-3 flex-1 min-w-0 max-w-3xl">
+                            <div class="relative flex-1 min-w-0">
+                                <span class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+                                <input id="bugSearchInput" type="search" oninput="updateBugSearch(this.value)" placeholder="Search by assignee" class="input-premium h-12 pl-12 pr-4 w-full min-w-0" />
+                            </div>
+                            <button onclick="updateBugSearch(document.getElementById('bugSearchInput').value)" class="h-12 px-6 rounded-2xl bg-slate-900 text-white font-black uppercase text-[11px] tracking-widest hover:bg-black transition-all whitespace-nowrap">Search</button>
+                        </div>
+                        <div class="bg-white px-6 py-3 rounded-2xl border border-slate-200 shadow-sm flex-shrink-0 flex items-center justify-center min-w-[96px]">
+                            <div class="text-center">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Active</p>
+                                <p id="bugStats" class="text-2xl font-black text-slate-900">0</p>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div id="adminBugContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+                <div class="bg-white rounded-[2.5rem] overflow-hidden border border-slate-200 shadow-sm">
+                    <div class="grid grid-cols-5 gap-4 px-6 py-5 text-[11px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                        <div>ID</div>
+                        <div>Title & Description</div>
+                        <div>Severity</div>
+                        <div>Status</div>
+                        <div>Assignee</div>
+                    </div>
+                    <div id="adminBugContainer"></div>
+                    <div class="px-6 py-5 border-t border-slate-100 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <p id="bugSummary" class="text-sm text-slate-500">Showing 0 incidents</p>
+                        <div class="flex items-center gap-2 text-slate-500">
+                            <button class="px-3 py-2 rounded-2xl border border-slate-200 hover:border-slate-300 transition-all">&lt;</button>
+                            <button class="px-3 py-2 rounded-2xl bg-slate-100 text-slate-700">1</button>
+                            <button class="px-3 py-2 rounded-2xl border border-slate-200 hover:border-slate-300 transition-all">2</button>
+                            <button class="px-3 py-2 rounded-2xl border border-slate-200 hover:border-slate-300 transition-all">3</button>
+                            <button class="px-3 py-2 rounded-2xl border border-slate-200 hover:border-slate-300 transition-all">&gt;</button>
+                        </div>
+                    </div>
+                </div>
             </section>
 
             <!-- Personnel View -->
@@ -315,6 +343,7 @@
         let currentBugs = [];
         let currentDepts = [];
         let selectedBugId = null;
+        let bugSearchTerm = '';
 
         async function checkAuth() {
             const res = await fetch('/api/me');
@@ -478,28 +507,45 @@
                 currentBugs = await res.json();
                 console.log('Reports Loaded:', currentBugs.length);
                 document.getElementById('bugStats').innerText = currentBugs.length;
-                const container = document.getElementById('adminBugContainer');
-                container.innerHTML = currentBugs.map(bug => `
-                    <div onclick="openBugDetail(${bug.id})" class="bg-white p-6 rounded-3xl border border-slate-200 card-hover cursor-pointer group">
-                        <div class="flex items-start justify-between mb-4">
-                            <span class="status-badge ${getSeverityClass(bug.severity)}">${bug.severity || 'Unassigned'}</span>
-                            <span class="text-[10px] font-black text-slate-300">#${bug.id}</span>
-                        </div>
-                        <h3 class="font-black text-xl text-slate-900 tracking-tight mb-3 group-hover:text-blue-600 transition-all">${bug.title}</h3>
-                        <p class="text-slate-500 text-sm font-medium line-clamp-2 mb-4">${bug.description}</p>
-                        <div class="flex items-center justify-between pt-4 border-t border-slate-50">
-                            <div class="flex items-center gap-2">
-                                <div class="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-[7px] font-black text-slate-400">${bug.reporter_name[0]}</div>
-                                <span class="text-[9px] font-bold text-slate-900 uppercase tracking-widest">${bug.reporter_name}</span>
-                            </div>
-                            <span class="text-[9px] font-black text-blue-600 uppercase tracking-widest">${bug.status === 'Resolved' ? 'Fixed' : (bug.status === 'Pending' ? 'In Review' : bug.status)}</span>
-                        </div>
-                    </div>
-                `).join('') || '<div class="col-span-full py-20 text-center text-slate-300 font-black italic tracking-widest uppercase text-xl">-- NO ACTIVE INCIDENTS --</div>';
-                container.innerHTML = html;
+                renderBugTable();
             } catch (e) {
                 console.error('Failed to load bugs:', e);
             }
+        }
+
+        function updateBugSearch(value) {
+            bugSearchTerm = String(value || '').trim().toLowerCase();
+            renderBugTable();
+        }
+
+        function renderBugTable() {
+            const container = document.getElementById('adminBugContainer');
+            const visibleBugs = currentBugs.filter(bug => {
+                if (!bugSearchTerm) return true;
+                const assignee = String(bug.assignee_name || bug.reporter_name || '').toLowerCase();
+                return assignee.includes(bugSearchTerm);
+            });
+            const rows = visibleBugs.map(bug => {
+                const statusLabel = bug.status === 'Resolved' ? 'Fixed' : (bug.status === 'Pending' ? 'In Review' : bug.status);
+                const assignee = bug.assignee_name || bug.reporter_name || 'Unknown';
+                return `
+                    <div onclick="openBugDetail(${bug.id})" class="grid grid-cols-5 gap-4 px-6 py-5 items-center border-b border-slate-100 hover:bg-slate-50 transition-all cursor-pointer">
+                        <div class="text-sm font-black text-slate-900">#${bug.id}</div>
+                        <div>
+                            <div class="font-black text-slate-900 mb-2">${bug.title}</div>
+                            <p class="text-slate-500 text-sm leading-6 line-clamp-2">${bug.description}</p>
+                        </div>
+                        <div><span class="status-badge ${getSeverityClass(bug.severity)}">${bug.severity || 'Unassigned'}</span></div>
+                        <div><span class="inline-flex items-center rounded-full bg-slate-100 px-3 py-2 text-[11px] font-bold uppercase tracking-widest text-slate-700">${statusLabel}</span></div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center font-black text-slate-600">${assignee[0] || 'A'}</div>
+                            <span class="font-bold text-slate-900">${assignee}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            container.innerHTML = rows || '<div class="p-20 text-center text-slate-300 font-black italic tracking-widest uppercase text-xl">-- NO ACTIVE INCIDENTS --</div>';
+            document.getElementById('bugSummary').innerText = `Showing ${visibleBugs.length} incidents`;
         }
 
         function openBugDetail(id) {
