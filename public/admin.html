@@ -293,6 +293,10 @@
                                 </select>
                             </div>
                         </div>
+                        <div>
+                            <label class="text-[10px] font-black text-slate-400 uppercase mb-3 block tracking-widest">Admin Remarks</label>
+                            <textarea id="detailAdminRemark" rows="4" class="input-premium resize-none" placeholder="Add notes for the user"></textarea>
+                        </div>
                     </div>
                     
                     <div class="space-y-8">
@@ -560,6 +564,7 @@
             document.getElementById('detailUserExtId').innerText = bug.user_external_id || 'N/A';
             document.getElementById('detailPacketId').innerText = bug.packet_id || 'N/A';
             document.getElementById('detailVideoLink').value = bug.video_link || '';
+            document.getElementById('detailAdminRemark').value = bug.admin_remark || '';
             document.getElementById('detailStatusSelect').value = bug.status;
             document.getElementById('detailSeveritySelect').value = bug.severity || 'Unassigned';
             
@@ -605,7 +610,8 @@
             const status = document.getElementById('detailStatusSelect').value;
             const severity = document.getElementById('detailSeveritySelect').value;
             const video_link = document.getElementById('detailVideoLink').value.trim();
-            const payload = { status, severity };
+            const admin_remark = document.getElementById('detailAdminRemark').value.trim();
+            const payload = { status, severity, admin_remark };
             if (video_link) payload.video_link = video_link;
             const res = await fetch(`/api/bugs/${selectedBugId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
             if (res.ok) { toggleModal('bugDetailModal', false); loadBugs(); }

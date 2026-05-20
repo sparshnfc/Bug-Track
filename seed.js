@@ -15,6 +15,7 @@ db.serialize(() => {
         description TEXT,
         severity TEXT,
         reporter_name TEXT,
+        reporter_id INTEGER,
         status TEXT DEFAULT 'Open',
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);

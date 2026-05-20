@@ -72,6 +72,24 @@ app.use(express.static(path.join(__dirname, 'public'), { extensions: ['html'] })
 // 4. API Endpoints
 const db = new sqlite3.Database('./bugs.db');
 
+db.serialize(() => {
+    db.all("PRAGMA table_info(bugs)", [], (err, rows) => {
+        if (err) return console.error('Schema check failed:', err.message);
+        const hasReporterId = rows.some(col => col.name === 'reporter_id');
+        if (!hasReporterId) {
+            db.run("ALTER TABLE bugs ADD COLUMN reporter_id INTEGER", (alterErr) => {
+                if (alterErr) console.error('Failed to add reporter_id column:', alterErr.message);
+            });
+        }
+        const hasAdminRemark = rows.some(col => col.name === 'admin_remark');
+        if (!hasAdminRemark) {
+            db.run("ALTER TABLE bugs ADD COLUMN admin_remark TEXT", (alterErr) => {
+                if (alterErr) console.error('Failed to add admin_remark column:', alterErr.message);
+            });
+        }
+    });
+});
+
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
     db.get("SELECT * FROM users WHERE username = ?", [username], async (err, user) => {
@@ -96,21 +114,35 @@ app.get('/api/me', (req, res) => {
 });
 
 app.get('/api/bugs', requireAuth, (req, res) => {
-    db.all("SELECT * FROM bugs ORDER BY id DESC", [], (err, rows) => res.json(rows));
+    if (req.session.role === 'admin') {
+        return db.all("SELECT * FROM bugs ORDER BY id DESC", [], (err, rows) => {
+            if (err) return res.status(500).json({ error: 'Failed to load reports' });
+            res.json(rows);
+        });
+    }
+
+    db.all(
+        "SELECT * FROM bugs WHERE reporter_id = ? OR reporter_name = ? ORDER BY id DESC",
+        [req.session.userId, req.session.username],
+        (err, rows) => {
+            if (err) return res.status(500).json({ error: 'Failed to load reports' });
+            res.json(rows);
+        }
+    );
 });
 
 app.post('/api/bugs', requireAuth, upload.fields([{name:'image'}, {name:'document'}]), (req, res) => {
     const { title, description, impact_scope, video_link, user_external_id, packet_id } = req.body;
     const img = req.files['image'] ? '/uploads/'+req.files['image'][0].filename : null;
     const doc = req.files['document'] ? '/uploads/'+req.files['document'][0].filename : null;
-    db.run("INSERT INTO bugs (title, description, severity, reporter_name, image_path, video_link, doc_path, impact_scope, user_external_id, packet_id) VALUES (?,?,?,?,?,?,?,?,?,?)",
-    [title, description, 'Unassigned', req.session.username, img, video_link, doc, impact_scope, user_external_id, packet_id], () => res.json({success:true}));
+    db.run("INSERT INTO bugs (title, description, severity, reporter_name, reporter_id, image_path, video_link, doc_path, impact_scope, user_external_id, packet_id) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+    [title, description, 'Unassigned', req.session.username, req.session.userId, img, video_link, doc, impact_scope, user_external_id, packet_id], () => res.json({success:true}));
 });
 
 app.put('/api/bugs/:id', requireAdmin, (req, res) => {
-    const { status, severity } = req.body;
-    console.log(`Updating Bug ${req.params.id}: Status=${status}, Severity=${severity}`);
-    db.run("UPDATE bugs SET status = ?, severity = ? WHERE id = ?", [status, severity, req.params.id], (err) => {
+    const { status, severity, video_link, admin_remark } = req.body;
+    console.log(`Updating Bug ${req.params.id}: Status=${status}, Severity=${severity}, Remark=${admin_remark}`);
+    db.run("UPDATE bugs SET status = ?, severity = ?, video_link = ?, admin_remark = ? WHERE id = ?", [status, severity, video_link || null, admin_remark || null, req.params.id], (err) => {
         if (err) {
             console.error("DB Update Error:", err.message);
             return res.status(500).json({ error: err.message });

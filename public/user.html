@@ -12,14 +12,46 @@
         :root { --accent: #3b82f6; --accent-glow: rgba(59, 130, 246, 0.4); }
         body { background: #f0f2f5; font-family: 'Outfit', sans-serif; color: #1e293b; }
         .glass-header { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255, 255, 255, 0.3); }
-        .input-premium { background: white; border: 1.5px solid #e2e8f0; border-radius: 1rem; padding: 0.8rem 1.2rem; width: 100%; transition: all 0.2s; font-size: 13px; }
-        .input-premium:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
-        .btn-primary { background: #0f172a; color: white; border-radius: 1rem; padding: 1rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; font-size: 11px; transition: all 0.3s; }
-        .btn-primary:hover { background: #000; transform: translateY(-2px); box-shadow: 0 10px 20px -5px rgba(0,0,0,0.2); }
-        .file-btn { cursor: pointer; background: white; padding: 0.8rem; border-radius: 1rem; font-size: 10px; font-weight: 800; color: #64748b; border: 1.5px solid #e2e8f0; transition: all 0.2s; }
-        .file-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(59, 130, 246, 0.05); }
-        .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; }
-        .severity-critical { background: #fee2e2; color: #991b1b; }
+        .input-premium { background: white; border: 1px solid #e2e8f0; border-radius: 1rem; padding: 0.95rem 1.2rem; width: 100%; transition: all 0.2s; font-size: 13px; }
+        .input-premium:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12); }
+        .btn-primary { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: white; border-radius: 1.75rem; padding: 1.15rem 1.25rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; font-size: 12px; transition: all 0.3s; box-shadow: 0 18px 40px -20px rgba(37, 99, 235, 0.65); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 22px 45px -20px rgba(37, 99, 235, 0.7); }
+        .file-btn { cursor: pointer; background: white; border: 1px dashed #cbd5e1; padding: 1.4rem 1rem; border-radius: 1.5rem; font-size: 12px; font-weight: 700; color: #475569; transition: all 0.25s; min-height: 156px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .file-btn:hover { border-color: #60a5fa; color: #1d4ed8; background: rgba(59, 130, 246, 0.04); }
+        .file-btn svg, .file-btn span.icon { font-size: 1.8rem; }
+        .paste-success { animation: pastePulse 0.6s ease-out; border-color: #22c55e !important; color: #14532d !important; background: rgba(16, 185, 129, 0.08); }
+        @keyframes pastePulse { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+        50% { transform: scale(1.03); box-shadow: 0 0 0 14px rgba(34, 197, 94, 0); }
+        100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); } }
+        .image-preview { border-radius: 1rem; overflow: hidden; }
+        .image-preview img { width: 100%; height: auto; display: block; border-radius: 1rem; }
+        .preview-card { border: 1px solid #e2e8f0; border-radius: 1.5rem; background: #f8fafc; padding: 1rem; }
+        .preview-card p { margin-top: 0.75rem; color: #475569; font-size: 12px; }
+        .submit-feedback { display: none; align-items: center; justify-content: center; gap: 0.5rem; background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; padding: 0.9rem 1rem; border-radius: 1rem; font-weight: 700; letter-spacing: 0.01em; }
+        .submit-feedback.show { display: flex; animation: showSuccess 0.35s ease-out; }
+        .submit-feedback span { font-size: 1.1rem; }
+        @keyframes showSuccess { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .btn-primary.success-pulse { animation: successPulse 0.45s ease-out; box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.15); }
+        @keyframes successPulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
+        .form-card { max-width: 900px; margin: 0 auto; background: white; border: 1px solid #e2e8f0; border-radius: 2rem; box-shadow: 0 24px 50px rgba(15, 23, 42, 0.08); padding: 2.25rem; }
+        .form-headline { font-size: 2rem; line-height: 1.05; letter-spacing: -0.03em; }
+        .form-subtitle { color: #64748b; margin-top: 0.5rem; }
+        .wide-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; }
+        @media (max-width: 850px) { .wide-grid { grid-template-columns: 1fr; } }
+        .field-header { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #64748b; margin-bottom: 0.6rem; }
+        .upload-card-title { font-weight: 800; margin-top: 0.75rem; }
+        .upload-card-note { color: #94a3b8; font-size: 11px; margin-top: 0.25rem; }
+        .upload-card-icon { font-size: 1.45rem; margin-bottom: 0.55rem; }
+        .header-button { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.9rem 1.4rem; border-radius: 9999px; background: #0f172a; color: white; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
+        .header-button:hover { background: #020617; }
+        .topbar { justify-content: space-between; gap: 1rem; }
+        .topbar-left { display: flex; align-items: center; gap: 1rem; }
+        .topbar-left h1 { font-size: 1.15rem; margin: 0; }
+        .topbar-left span { color: #2563eb; font-size: 0.7rem; letter-spacing: 0.2em; }
+        .topbar-right { display: flex; align-items: center; gap: 1rem; }
+        .topbar-avatar { width: 44px; height: 44px; border-radius: 1rem; border: 2px solid #fff; }
+        .topbar-user { text-align: right; }
+            .severity-critical { background: #fee2e2; color: #991b1b; }
         .severity-high { background: #ffedd5; color: #9a3412; }
         .severity-medium { background: #fef9c3; color: #854d0e; }
         .severity-low { background: #f0fdf4; color: #166534; }
@@ -28,6 +60,8 @@
         .profile-dropdown.active { display: block; animation: slideDown 0.2s ease-out; }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
         .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px); z-index: 100; align-items: center; justify-content: center; }
+        #bugDetailModal { z-index: 110; }
+        #recentReportsModal { z-index: 100; }
         .modal-overlay.active { display: flex; }
         .card-report { background: white; border: 1px solid #e2e8f0; border-radius: 1.5rem; padding: 1.5rem; transition: all 0.3s; cursor: pointer; }
         .card-report:hover { transform: translateY(-3px); border-color: var(--accent); box-shadow: 0 15px 30px -10px rgba(0,0,0,0.05); }
@@ -42,6 +76,9 @@
                 <span class="text-[9px] font-black text-blue-600 uppercase tracking-[0.2em]">Staff Portal</span>
             </div>
         </div>
+        <button onclick="toggleModal('recentReportsModal', true)" class="bg-slate-900 text-white px-5 py-3 rounded-2xl font-bold uppercase text-[10px] tracking-widest hover:bg-black transition-all">
+            Recent Reports / તાજેતરના રિપોર્ટ
+        </button>
         
         <div class="relative">
             <button onclick="toggleDropdown()" class="flex items-center gap-4 hover:bg-white p-2 rounded-2xl transition-all border border-transparent hover:border-slate-200 group">
@@ -60,61 +97,68 @@
         </div>
     </header>
 
-    <main class="flex-1 overflow-hidden grid grid-cols-1 lg:grid-cols-12 bg-slate-50">
-        <div class="lg:col-span-4 p-10 border-r border-slate-200 bg-white overflow-y-auto">
-            <div class="max-w-md mx-auto space-y-10">
-                <div>
-                    <h2 class="text-3xl font-black text-slate-900 tracking-tight">Report a Problem</h2>
-                    <p class="text-slate-400 font-medium mt-1">Tell us what went wrong</p>
+    <main class="flex-1 overflow-y-auto bg-slate-50 py-12">
+        <div class="form-card">
+            <div class="space-y-8">
+                <div class="text-center">
+                    <h2 class="form-headline text-slate-900">Report a Problem <span class="text-base font-semibold text-slate-500">(સમસ્યાની જાણ કરો)</span></h2>
+                    <p class="form-subtitle">Tell us what went wrong / અમને જણાવો શું ખોટું થયું</p>
                 </div>
-                <form id="bugForm" class="space-y-6">
+                <form id="bugForm" class="space-y-8">
                     <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">Problem Title</label>
-                        <input type="text" id="title" required class="input-premium" placeholder="Brief Summary">
+                        <div class="field-header">Problem Title / સમસ્યાનું શીર્ષક</div>
+                        <input type="text" id="title" required class="input-premium" placeholder="Brief Summary / સંક્ષિપ્ત સારાંશ">
                     </div>
-                    <div class="grid grid-cols-2 gap-6">
+                    <div class="wide-grid">
                         <div>
-                            <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">Problem Type</label>
+                            <div class="field-header">Problem Type / સમસ્યાનો પ્રકાર</div>
                             <select id="impactScope" class="input-premium">
-                                <option value="Single Packet">Single Packet</option>
-                                <option value="One Packet Affected">One Packet Affected</option>
-                                <option value="Multiple Packets">Multiple Packets</option>
-                                <option value="Entire System">Entire System</option>
+                                <option value="Single Packet">Single Packet / એક પેકેટ</option>
+                                <option value="One Packet Affected">One Packet Affected / એક પેકેટ અસરિત</option>
+                                <option value="Multiple Packets">Multiple Packets / ઘણા પેકેટ</option>
+                                <option value="Entire System">Entire System / પૂરું સિસ્ટમ</option>
                             </select>
                         </div>
                         <div>
-                            <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">Video Link (Optional)</label>
-                            <input type="url" id="videoLink" class="input-premium" placeholder="Optional URL">
+                            <div class="field-header">Video Link (Optional) / વિડિયો લિંક (વૈકલ્પિક)</div>
+                            <input type="url" id="videoLink" class="input-premium" placeholder="Optional URL / વૈકલ્પિક URL">
                         </div>
                     </div>
-                    <div class="grid grid-cols-2 gap-6">
+                    <div class="wide-grid">
                         <div>
-                            <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">User ID</label>
-                            <input type="text" id="userExternalId" class="input-premium" placeholder="Target User ID">
+                            <div class="field-header">User ID / વપરાશકર્તા ID</div>
+                            <input type="text" id="userExternalId" class="input-premium" placeholder="Target User ID / લક્ષ્ય વપરાશકર્તા ID">
                         </div>
                         <div>
-                            <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">Packet ID</label>
-                            <input type="text" id="packetId" class="input-premium" placeholder="Target Packet ID">
+                            <div class="field-header">Packet ID / પેકેટ ID</div>
+                            <input type="text" id="packetId" class="input-premium" placeholder="Target Packet ID / લક્ષ્ય પેકેટ ID">
                         </div>
                     </div>
                     <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">What Happened?</label>
-                        <textarea id="description" required rows="4" class="input-premium resize-none" placeholder="Explain the anomaly..."></textarea>
+                        <div class="field-header">What Happened? / શું થયું?</div>
+                        <textarea id="description" required rows="5" class="input-premium resize-none" placeholder="Explain the anomaly... / અસામાન્યતાનો વર્ણન કરો..."></textarea>
                     </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <label class="file-btn text-center flex items-center justify-center gap-2">🖼️ Upload Screenshot <input type="file" id="imageInput" accept="image/*" class="hidden"></label>
-                        <label class="file-btn text-center flex items-center justify-center gap-2">📄 Upload File <input type="file" id="docInput" accept=".pdf,.doc,.docx,.txt" class="hidden"></label>
+                    <div class="wide-grid">
+                        <div class="relative">
+                            <button id="imageUploadZone" type="button" class="file-btn">
+                                <span class="upload-card-icon">🖼️</span>
+                                <span class="upload-card-title">Paste Screenshot / સ્ક્રીનશોટ પેસ્ટ કરો</span>
+                                <span class="upload-card-note">Click here to open clipboard capture / અહીં ક્લિક કરો ક્લિપબોર્ડ માટે</span>
+                            </button>
+                            <input type="file" id="imageInput" accept="image/*" class="hidden">
+                        </div>
+                        <label class="file-btn">
+                            <span class="upload-card-icon">📄</span>
+                            <span class="upload-card-title">Upload File / ફાઇલ અપલોડ કરો</span>
+                            <span class="upload-card-note">Drag & drop logs or reports / લોગ અથવા રિપોર્ટ અહીં ખેંચો</span>
+                            <input type="file" id="docInput" accept=".pdf,.doc,.docx,.txt" class="hidden">
+                        </label>
                     </div>
-                    <button type="submit" class="w-full btn-primary mt-4">Submit Report</button>
+                    <div id="imagePreview" class="preview-card">No screenshot selected / કોઈ સ્ક્રીનશોટ પસંદ થયેલ નથી</div>
+                    <div id="submitStatus" class="submit-feedback"><span>✔</span><div id="submitStatusText">Report submitted successfully / રિપોર્ટ સફળતાપૂર્વક સબમિટ થયું</div></div>
+                    <button id="submitButton" type="submit" class="w-full btn-primary mt-1">Submit Report / અહેવાલ મોકલો</button>
                 </form>
             </div>
-        </div>
-        <div class="lg:col-span-8 flex flex-col overflow-hidden p-10 space-y-8">
-            <div class="flex items-center justify-between">
-                <h2 class="text-2xl font-black text-slate-900 tracking-tight">Recent Reports</h2>
-                <span id="stats" class="bg-white px-6 py-2 rounded-2xl border border-slate-200 text-xs font-black text-slate-600 shadow-sm">0 REPORTS</span>
-            </div>
-            <div id="bugContainer" class="flex-1 overflow-y-auto space-y-4 pr-4"></div>
         </div>
     </main>
 
@@ -155,6 +199,10 @@
                             </div>
                         </div>
                         <div>
+                            <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">Admin Remarks</label>
+                            <p id="detailAdminRemark" class="text-slate-700 leading-relaxed"></p>
+                        </div>
+                        <div>
                             <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">Report Date</label>
                             <p id="detailDate" class="font-bold text-slate-500 uppercase"></p>
                         </div>
@@ -167,6 +215,17 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <div id="recentReportsModal" class="modal-overlay">
+        <div class="bg-white rounded-[3rem] w-full max-w-6xl p-10 shadow-2xl relative max-h-[90vh] overflow-hidden">
+            <button onclick="toggleModal('recentReportsModal', false)" class="absolute top-6 right-6 text-slate-300 hover:text-slate-900 text-3xl font-light transition-colors">&times;</button>
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-3xl font-black text-slate-900 tracking-tight">Recent Reports / તાજેતરના રિપોર્ટ</h2>
+                <span id="stats" class="bg-white px-6 py-2 rounded-2xl border border-slate-200 text-xs font-black text-slate-600 shadow-sm">0 REPORTS</span>
+            </div>
+            <div id="bugContainer" class="h-[70vh] overflow-y-auto space-y-4 pr-4"></div>
         </div>
     </div>
 
@@ -184,7 +243,17 @@
         }
 
         function toggleDropdown() { document.getElementById('profileDropdown').classList.toggle('active'); }
-        function toggleModal(show) { document.getElementById('bugDetailModal').classList.toggle('active', show); }
+        function toggleModal(id, show) { 
+            if (typeof show === 'undefined') { show = id; id = 'bugDetailModal'; }
+            const target = document.getElementById(id);
+            if (!target) return;
+            if (show) {
+                document.querySelectorAll('.modal-overlay.active').forEach((modal) => {
+                    if (modal !== target) modal.classList.remove('active');
+                });
+            }
+            target.classList.toggle('active', show);
+        }
         window.onclick = function(e) { if (!e.target.closest('.relative')) document.getElementById('profileDropdown').classList.remove('active'); }
 
         async function loadBugs() {
@@ -224,6 +293,7 @@
             document.getElementById('detailImpact').innerText = bug.impact_scope || 'Single Packet';
             document.getElementById('detailUserExtId').innerText = bug.user_external_id || 'N/A';
             document.getElementById('detailPacketId').innerText = bug.packet_id || 'N/A';
+            document.getElementById('detailAdminRemark').innerText = bug.admin_remark || 'No remarks yet.';
             document.getElementById('detailDate').innerText = new Date(bug.created_at).toLocaleString();
             
             const sevEl = document.getElementById('detailSeverity');
@@ -264,6 +334,119 @@
         function getSeverityClass(s) { if(!s) return 'severity-unassigned'; const sev = s.toLowerCase(); if(sev === 'critical') return 'severity-critical'; if(sev === 'high') return 'severity-high'; if(sev === 'medium') return 'severity-medium'; if(sev === 'unassigned') return 'severity-unassigned'; return 'severity-low'; }
         async function logout() { await fetch('/api/logout', { method: 'POST' }); window.location.href = '/'; }
 
+        const imageInputElem = document.getElementById('imageInput');
+        const imageUploadZone = document.getElementById('imageUploadZone');
+        const imagePreview = document.getElementById('imagePreview');
+
+        function showImagePreview(file) {
+            if (!file) {
+                imagePreview.innerHTML = 'No screenshot selected / કોઈ સ્ક્રીનશોટ પસંદ થયેલ નથી';
+                return;
+            }
+            const url = URL.createObjectURL(file);
+            imagePreview.innerHTML = `
+                <div class="image-preview">
+                    <img src="${url}" alt="Screenshot preview">
+                    <p class="mt-3 text-[10px] text-slate-500">Screenshot ready to submit / સ્ક્રીનશોટ તૈયાર છે</p>
+                </div>
+            `;
+        }
+
+        async function pasteFromClipboard() {
+            if (!navigator.clipboard || !navigator.clipboard.read) {
+                const statusText = imageUploadZone.querySelector('small');
+                if (statusText) statusText.innerText = 'Clipboard access not supported. Use Ctrl+V / ક્લિપબોર્ડ સપોર્ટ નથી';
+                return;
+            }
+            try {
+                const items = await navigator.clipboard.read();
+                for (const item of items) {
+                    const type = item.types.find(t => t.startsWith('image/'));
+                    if (!type) continue;
+                    const blob = await item.getType(type);
+                    const file = new File([blob], `clipboard-${Date.now()}.png`, { type: blob.type });
+                    selectClipboardImage(file);
+                    return;
+                }
+                const statusText = imageUploadZone.querySelector('small');
+                if (statusText) statusText.innerText = 'No image in clipboard. Press Ctrl+V / ક્લિપબોર્ડમાં છબી નથી';
+            } catch (error) {
+                const statusText = imageUploadZone.querySelector('small');
+                if (statusText) statusText.innerText = 'Clipboard read failed. Press Ctrl+V / ક્લિપબોર્ડ વાંચવામાં વફલ થયું';
+            }
+        }
+
+        function selectClipboardImage(file) {
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            imageInputElem.files = dataTransfer.files;
+            showImagePreview(file);
+            const statusText = imageUploadZone.querySelector('small');
+            if (statusText) statusText.innerText = 'Screenshot pasted. Ready to submit. / સ્ક્રીનશોટ પેસ્ટ થઈ ગઈ છે.';
+            imageUploadZone.classList.add('paste-success');
+            imageUploadZone.addEventListener('animationend', () => imageUploadZone.classList.remove('paste-success'), { once: true });
+        }
+
+        imageUploadZone.addEventListener('paste', (event) => {
+            const items = event.clipboardData?.items;
+            if (!items) return;
+            for (const item of Array.from(items)) {
+                if (item.type.startsWith('image/')) {
+                    const blob = item.getAsFile();
+                    if (!blob) continue;
+                    const file = new File([blob], `clipboard-${Date.now()}.png`, { type: blob.type });
+                    selectClipboardImage(file);
+                    event.preventDefault();
+                    return;
+                }
+            }
+        });
+
+        imageUploadZone.addEventListener('dragover', (event) => event.preventDefault());
+        imageUploadZone.addEventListener('drop', (event) => {
+            event.preventDefault();
+            const files = Array.from(event.dataTransfer?.files || []);
+            const imageFile = files.find((file) => file.type.startsWith('image/'));
+            if (imageFile) selectClipboardImage(imageFile);
+        });
+
+        imageInputElem.addEventListener('change', () => {
+            const file = imageInputElem.files[0];
+            if (file) {
+                showImagePreview(file);
+                const statusText = imageUploadZone.querySelector('small');
+                if (statusText) statusText.innerText = 'Screenshot selected. Ready to submit. / સ્ક્રીનશોટ પસંદ કરી લીધું છે.';
+            }
+        });
+
+        imageUploadZone.addEventListener('click', (event) => {
+            event.preventDefault();
+            pasteFromClipboard();
+        });
+
+        const submitStatus = document.getElementById('submitStatus');
+        const submitStatusText = document.getElementById('submitStatusText');
+        const submitButton = document.getElementById('submitButton');
+
+        function clearForm() {
+            document.getElementById('bugForm').reset();
+            imageInputElem.value = '';
+            imagePreview.innerHTML = 'No screenshot selected / કોઈ સ્ક્રીનશોટ પસંદ થયેલ નથી';
+            const statusText = imageUploadZone.querySelector('small');
+            if (statusText) statusText.innerText = 'Click here to open clipboard capture / અહીં ક્લિક કરો ક્લિપબોર્ડ માટે';
+            imageUploadZone.classList.remove('paste-success');
+        }
+
+        function showSubmitSuccess(message) {
+            submitStatusText.innerText = message;
+            submitStatus.classList.add('show');
+            submitButton.classList.add('success-pulse');
+            setTimeout(() => {
+                submitStatus.classList.remove('show');
+                submitButton.classList.remove('success-pulse');
+            }, 2800);
+        }
+
         document.getElementById('bugForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const formData = new FormData();
@@ -273,12 +456,16 @@
             formData.append('video_link', document.getElementById('videoLink').value);
             formData.append('user_external_id', document.getElementById('userExternalId').value);
             formData.append('packet_id', document.getElementById('packetId').value);
-            const image = document.getElementById('imageInput').files[0];
+            const image = imageInputElem.files[0];
             const doc = document.getElementById('docInput').files[0];
             if (image) formData.append('image', image);
             if (doc) formData.append('document', doc);
             const res = await fetch('/api/bugs', { method: 'POST', body: formData });
-            if (res.ok) { document.getElementById('bugForm').reset(); loadBugs(); }
+            if (res.ok) {
+                clearForm();
+                loadBugs();
+                showSubmitSuccess('Bug report submitted successfully / રિપોર્ટ સફળતાપૂર્વક સબમિટ થયું');
+            }
         });
 
         checkAuth();
