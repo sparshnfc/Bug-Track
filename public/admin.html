@@ -97,27 +97,26 @@
             </div>
         </header>
 
-        <div class="flex-1 overflow-y-auto p-10 space-y-10">
-            <!-- Dashboard View -->
+        <div class="flex-1 overflow-y-auto p-10 bg-slate-50/50">
+            <div class="max-w-[1400px] mx-auto w-full space-y-10">
+                <!-- Dashboard View -->
             <section id="dashboardView" class="view-section active space-y-8">
-                <div class="flex items-end justify-between gap-4 flex-wrap">
+                <div class="flex flex-col gap-6">
                     <div>
                         <h2 class="text-4xl font-black text-slate-900 tracking-tight">Report Overview</h2>
                         <p class="text-slate-500 font-medium mt-1">View and manage all reports</p>
                     </div>
-                    <div class="flex items-center justify-between gap-4 flex-wrap w-full min-w-0">
-                        <div class="flex items-center gap-3 flex-1 min-w-0 max-w-3xl">
-                            <div class="relative flex-1 min-w-0">
-                                <span class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
-                                <input id="bugSearchInput" type="search" oninput="updateBugSearch(this.value)" placeholder="Search by assignee" class="input-premium h-12 pl-12 pr-4 w-full min-w-0" />
+                    <div class="flex items-center justify-between gap-4">
+                        <div class="flex items-center gap-3 flex-1 max-w-2xl">
+                            <div class="relative flex-1">
+                                <span class="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 text-lg">🔍</span>
+                                <input id="bugSearchInput" type="search" oninput="updateBugSearch(this.value)" placeholder="Search by assignee" class="input-premium h-14 w-full" style="padding-left: 3.25rem;" />
                             </div>
-                            <button onclick="updateBugSearch(document.getElementById('bugSearchInput').value)" class="h-12 px-6 rounded-2xl bg-slate-900 text-white font-black uppercase text-[11px] tracking-widest hover:bg-black transition-all whitespace-nowrap">Search</button>
+                            <button onclick="updateBugSearch(document.getElementById('bugSearchInput').value)" class="h-14 px-8 rounded-2xl bg-slate-900 text-white font-black uppercase text-[11px] tracking-widest hover:bg-black transition-all whitespace-nowrap shadow-md shadow-slate-900/10">Search</button>
                         </div>
-                        <div class="bg-white px-6 py-3 rounded-2xl border border-slate-200 shadow-sm flex-shrink-0 flex items-center justify-center min-w-[96px]">
-                            <div class="text-center">
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Active</p>
-                                <p id="bugStats" class="text-2xl font-black text-slate-900">0</p>
-                            </div>
+                        <div class="bg-white h-14 px-6 rounded-2xl border border-slate-200 shadow-sm flex-shrink-0 flex items-center justify-center gap-3 min-w-[120px]">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Active</span>
+                            <span id="bugStats" class="text-2xl font-black text-slate-900 leading-none">0</span>
                         </div>
                     </div>
                 </div>
@@ -224,94 +223,112 @@
         </div>
     </div>
 
+    <!-- Password Reset Modal -->
+    <div id="passwordModal" class="modal-overlay">
+        <div class="bg-white rounded-[3rem] w-full max-w-md p-10 shadow-2xl relative">
+            <button onclick="toggleModal('passwordModal', false)" class="absolute top-6 right-6 text-slate-300 hover:text-slate-900 text-3xl font-light transition-colors">&times;</button>
+            <h2 class="text-3xl font-black text-slate-900 mb-2 uppercase tracking-tight">Reset Key</h2>
+            <p class="text-slate-400 font-medium mb-8">Update security clearance for <span id="resetPasswordUsername" class="font-bold text-slate-900"></span></p>
+            
+            <form id="resetPasswordForm" class="space-y-6">
+                <div>
+                    <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">New Password</label>
+                    <input type="password" id="resetNewPassword" required class="input-premium">
+                </div>
+                <button type="submit" class="w-full bg-slate-900 text-white p-4 rounded-2xl font-black uppercase text-[11px] tracking-widest shadow-lg shadow-slate-900/20 hover:bg-black transition-all">Confirm Change</button>
+            </form>
+        </div>
+    </div>
+
     <!-- Bug Detail Modal -->
     <div id="bugDetailModal" class="modal-overlay">
-        <div class="bg-white rounded-[3rem] w-full max-w-4xl p-10 shadow-2xl relative flex flex-col max-h-[calc(100vh-2rem)] overflow-hidden">
-            <button onclick="toggleModal('bugDetailModal', false)" class="absolute top-8 right-8 text-slate-300 hover:text-slate-900 text-3xl font-light transition-colors">&times;</button>
-            <div class="flex-1 min-h-0 pr-4 space-y-8 overflow-y-auto">
-                <div class="flex items-center gap-6">
+        <div class="bg-white rounded-[2rem] w-full max-w-3xl shadow-2xl relative flex flex-col max-h-[calc(100vh-3rem)] overflow-hidden">
+            <!-- Modal Header -->
+            <div class="px-10 pt-8 pb-6 border-b border-slate-100">
+                <button onclick="toggleModal('bugDetailModal', false)" class="absolute top-6 right-6 w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-500 transition-all text-lg">&times;</button>
+                <div class="flex items-center gap-4">
                     <span id="detailSeverityBadge" class="status-badge"></span>
-                    <h2 id="detailTitle" class="text-3xl font-black text-slate-900 tracking-tight"></h2>
-                </div>
-                
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                    <div class="space-y-8">
-                        <div class="bg-slate-50 p-8 rounded-[2rem] border border-slate-100">
-                            <label class="text-[10px] font-black text-slate-400 uppercase mb-3 block tracking-widest">What Happened?</label>
-                            <p id="detailDesc" class="text-slate-600 leading-relaxed font-medium"></p>
-                        </div>
-                        
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-                                <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">Reporter</label>
-                                <p id="detailReporter" class="font-bold text-slate-900"></p>
-                            </div>
-                            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-                                <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">Type</label>
-                                <p id="detailImpact" class="font-bold text-slate-900"></p>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-                                <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">User ID</label>
-                                <p id="detailUserExtId" class="font-bold text-slate-900"></p>
-                            </div>
-                            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-                                <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">Packet ID</label>
-                                <p id="detailPacketId" class="font-bold text-slate-900"></p>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 gap-3 pt-4">
-                            <div>
-                                <label class="text-[10px] font-black text-slate-400 uppercase mb-3 block tracking-widest">Video Link</label>
-                                <div class="flex items-center gap-3">
-                                    <input id="detailVideoLink" type="url" placeholder="Paste video URL here" class="input-premium flex-1" />
-                                    <button id="detailCopyVideoLinkBtn" type="button" onclick="copyBugVideoLink()" class="px-4 py-3 rounded-2xl bg-slate-900 text-white text-[11px] font-bold uppercase tracking-widest hover:bg-black transition-all">Copy</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-8 pt-4">
-                            <div>
-                                <label class="text-[10px] font-black text-slate-400 uppercase mb-3 block tracking-widest">Assign Severity</label>
-                                <select id="detailSeveritySelect" class="input-premium font-bold text-red-600 uppercase">
-                                    <option value="Unassigned">Unassigned</option>
-                                    <option value="Low">Low</option>
-                                    <option value="Medium">Medium</option>
-                                    <option value="High">High</option>
-                                    <option value="Critical">Critical</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="text-[10px] font-black text-slate-400 uppercase mb-3 block tracking-widest">Update Status</label>
-                                <select id="detailStatusSelect" class="input-premium font-bold text-blue-600 uppercase">
-                                    <option value="Pending">In Review</option>
-                                    <option value="In Progress">In Progress</option>
-                                    <option value="Resolved">Fixed</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div>
-                            <label class="text-[10px] font-black text-slate-400 uppercase mb-3 block tracking-widest">Admin Remarks</label>
-                            <textarea id="detailAdminRemark" rows="4" class="input-premium resize-none" placeholder="Add notes for the user"></textarea>
-                        </div>
-                    </div>
-                    
-                    <div class="space-y-8">
-                        <div class="relative group">
-                            <div id="mediaViewer" class="bg-slate-950 rounded-[2.5rem] overflow-hidden h-[280px] flex items-center justify-center border-[6px] border-white shadow-2xl">
-                            </div>
-                        </div>
-                        <div id="mediaControls" class="flex gap-4 p-2 bg-white rounded-3xl border border-slate-100 shadow-sm overflow-x-auto">
-                        </div>
-                    </div>
+                    <h2 id="detailTitle" class="text-2xl font-black text-slate-900 tracking-tight leading-tight"></h2>
                 </div>
             </div>
-            <div class="mt-12 pt-8 border-t border-slate-100 flex justify-end gap-4">
-                <button onclick="toggleModal('bugDetailModal', false)" class="px-8 py-4 rounded-2xl font-bold text-slate-400 uppercase text-[11px] hover:bg-slate-50 transition-all">Dismiss</button>
-                <button onclick="saveBugStatus()" class="bg-slate-900 text-white px-12 py-4 rounded-2xl font-black uppercase text-[11px] tracking-widest hover:bg-black transition-all shadow-xl shadow-slate-900/10">Commit Evaluation</button>
+
+            <!-- Modal Body - Scrollable -->
+            <div class="flex-1 min-h-0 overflow-y-auto px-10 py-8 space-y-6">
+                <!-- Description -->
+                <div class="bg-gradient-to-br from-slate-50 to-slate-100/50 p-6 rounded-2xl border border-slate-100">
+                    <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">What Happened?</label>
+                    <p id="detailDesc" class="text-slate-700 leading-relaxed font-medium text-sm"></p>
+                </div>
+
+                <!-- Info Grid - 4 cards in a row -->
+                <div class="grid grid-cols-4 gap-3">
+                    <div class="bg-white p-4 rounded-xl border border-slate-100 text-center">
+                        <label class="text-[9px] font-black text-slate-400 uppercase block tracking-widest mb-1">Reporter</label>
+                        <p id="detailReporter" class="font-black text-slate-900 text-sm truncate"></p>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-slate-100 text-center">
+                        <label class="text-[9px] font-black text-slate-400 uppercase block tracking-widest mb-1">Type</label>
+                        <p id="detailImpact" class="font-black text-slate-900 text-sm break-words"></p>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-slate-100 text-center">
+                        <label class="text-[9px] font-black text-slate-400 uppercase block tracking-widest mb-1">User ID</label>
+                        <p id="detailUserExtId" class="font-black text-slate-900 text-sm truncate"></p>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-slate-100 text-center">
+                        <label class="text-[9px] font-black text-slate-400 uppercase block tracking-widest mb-1">Packet ID</label>
+                        <p id="detailPacketId" class="font-black text-slate-900 text-sm truncate"></p>
+                    </div>
+                </div>
+
+                <!-- Video Link -->
+                <div>
+                    <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">Video Link</label>
+                    <div class="flex items-center gap-2">
+                        <input id="detailVideoLink" type="url" placeholder="Paste video URL here" class="input-premium flex-1 !py-3 text-sm" />
+                        <button id="detailCopyVideoLinkBtn" type="button" onclick="copyBugVideoLink()" class="px-5 py-3 rounded-xl bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all shrink-0">Copy</button>
+                    </div>
+                </div>
+
+                <!-- Severity + Status side by side -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">Assign Severity</label>
+                        <select id="detailSeveritySelect" class="input-premium font-bold text-red-600 uppercase text-sm !py-3">
+                            <option value="Unassigned">Unassigned</option>
+                            <option value="Low">Low</option>
+                            <option value="Medium">Medium</option>
+                            <option value="High">High</option>
+                            <option value="Critical">Critical</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">Update Status</label>
+                        <select id="detailStatusSelect" class="input-premium font-bold text-blue-600 uppercase text-sm !py-3">
+                            <option value="Pending">In Review</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Resolved">Fixed</option>
+                            <option value="Invalid">Invalid Request</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Admin Remarks -->
+                <div>
+                    <label class="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">Admin Remarks</label>
+                    <textarea id="detailAdminRemark" rows="3" class="input-premium resize-none overflow-hidden text-sm" placeholder="Add evaluation notes..." oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'"></textarea>
+                </div>
+
+                <!-- Evidence Actions -->
+                <div>
+                    <label class="text-[10px] font-black text-slate-400 uppercase mb-3 block tracking-widest">Evidence & Attachments</label>
+                    <div id="mediaButtons" class="flex gap-3"></div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="px-10 py-6 border-t border-slate-100 flex items-center justify-end gap-3 bg-slate-50/50">
+                <button onclick="toggleModal('bugDetailModal', false)" class="px-6 py-3 rounded-xl font-bold text-slate-500 uppercase text-[10px] tracking-widest hover:bg-slate-100 transition-all">Dismiss</button>
+                <button onclick="saveBugStatus()" class="bg-slate-900 text-white px-8 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-black transition-all shadow-lg shadow-slate-900/20">Commit Evaluation</button>
             </div>
         </div>
     </div>
@@ -564,7 +581,11 @@
             document.getElementById('detailUserExtId').innerText = bug.user_external_id || 'N/A';
             document.getElementById('detailPacketId').innerText = bug.packet_id || 'N/A';
             document.getElementById('detailVideoLink').value = bug.video_link || '';
-            document.getElementById('detailAdminRemark').value = bug.admin_remark || '';
+            const remarkEl = document.getElementById('detailAdminRemark');
+            remarkEl.value = bug.admin_remark || '';
+            remarkEl.style.height = '';
+            setTimeout(() => { remarkEl.style.height = remarkEl.scrollHeight + 'px'; }, 10);
+            
             document.getElementById('detailStatusSelect').value = bug.status;
             document.getElementById('detailSeveritySelect').value = bug.severity || 'Unassigned';
             
@@ -572,22 +593,13 @@
             badge.innerText = bug.severity || 'Unassigned';
             badge.className = `status-badge ${getSeverityClass(bug.severity)}`;
 
-            const viewer = document.getElementById('mediaViewer');
-            const controls = document.getElementById('mediaControls');
-            viewer.innerHTML = '<p class="text-slate-500 font-black uppercase tracking-widest text-xs">No Evidence Evidence</p>';
-            controls.innerHTML = '';
-
-            if (bug.image_path) {
-                controls.innerHTML += `<button onclick="viewMedia('img', '${bug.image_path}')" class="w-16 h-16 rounded-2xl flex-shrink-0 overflow-hidden border-2 border-transparent hover:border-blue-600 transition-all"><img src="${bug.image_path}" class="w-full h-full object-cover"></button>`;
-                viewMedia('img', bug.image_path);
-            }
-            if (bug.video_link) {
-                controls.innerHTML += `<button onclick="openVideoPopup('${bug.video_link}')" class="w-16 h-16 bg-slate-900 rounded-2xl flex-shrink-0 flex items-center justify-center text-2xl border-2 border-transparent hover:border-blue-600 transition-all">🎥</button>`;
-                if (!bug.image_path) viewer.innerHTML = `<p class="text-slate-400 uppercase tracking-widest text-xs font-black">Tap the play icon to open the video</p>`;
-            }
-            if (bug.doc_path) {
-                controls.innerHTML += `<a href="${bug.doc_path}" target="_blank" class="w-16 h-16 bg-blue-50 rounded-2xl flex-shrink-0 flex items-center justify-center text-2xl border-2 border-transparent hover:border-blue-600 transition-all">📄</a>`;
-            }
+            const buttonsDiv = document.getElementById('mediaButtons');
+            let btns = '';
+            if (bug.image_path) btns += `<button onclick="window.open('${bug.image_path}', '_blank')" class="flex items-center gap-2 px-5 py-3 bg-emerald-50 text-emerald-700 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-emerald-100 hover:shadow-md transition-all border border-emerald-100"><span class="text-base">🖼️</span> View Image</button>`;
+            if (bug.doc_path) btns += `<button onclick="window.open('${bug.doc_path}', '_blank')" class="flex items-center gap-2 px-5 py-3 bg-blue-50 text-blue-700 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-blue-100 hover:shadow-md transition-all border border-blue-100"><span class="text-base">📄</span> View Document</button>`;
+            if (bug.video_link) btns += `<button onclick="window.open('${bug.video_link}', '_blank')" class="flex items-center gap-2 px-5 py-3 bg-purple-50 text-purple-700 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-purple-100 hover:shadow-md transition-all border border-purple-100"><span class="text-base">🎬</span> View Video</button>`;
+            if (!btns) btns = '<p class="text-xs text-slate-400 italic font-medium">No evidence attached</p>';
+            buttonsDiv.innerHTML = btns;
 
             toggleModal('bugDetailModal', true);
         }
@@ -697,8 +709,9 @@
                         </td>
                         <td class="px-10 py-8">
                             <select onchange="updateUser(${user.id}, this)" class="bg-white border border-slate-100 rounded-lg px-4 py-2 font-bold text-xs text-slate-600 focus:outline-none focus:border-blue-600">
+                                <option value="" disabled hidden>Select Dept</option>
                                 ${currentDepts.map(d => `<option value="${d.name}">${d.name}</option>`).join('')}
-                                ${!currentDepts.find(d => d.name === user.department) ? `<option value="${user.department}">${user.department}</option>` : ''}
+                                ${user.department && !currentDepts.find(d => d.name === user.department) ? `<option value="${user.department}">${user.department}</option>` : ''}
                             </select>
                         </td>
                         <td class="px-10 py-8">
@@ -707,8 +720,9 @@
                                 <option value="admin">Admin</option>
                             </select>
                         </td>
-                        <td class="px-10 py-8 text-right">
-                            <button onclick="deleteUser(${user.id})" class="opacity-0 group-hover:opacity-100 px-4 py-2 bg-red-50 text-red-500 rounded-lg font-black text-[10px] uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all">Terminate</button>
+                        <td class="px-10 py-8 text-right flex justify-end gap-2">
+                            <button onclick="openPasswordModal(${user.id}, '${user.username}')" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-lg font-black text-[10px] uppercase tracking-widest hover:bg-slate-900 hover:text-white transition-all">Reset Key</button>
+                            <button onclick="deleteUser(${user.id})" class="px-4 py-2 bg-red-50 text-red-500 rounded-lg font-black text-[10px] uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all">Terminate</button>
                         </td>
                     </tr>
                 `).join('');
@@ -743,6 +757,31 @@
 
         async function deleteUser(id) { if (confirm('Terminate staff?')) { await fetch(`/api/admin/users/${id}`, { method: 'DELETE' }); loadUsers(); } }
         async function logout() { await fetch('/api/logout', { method: 'POST' }); window.location.href = '/'; }
+
+        let resetPasswordUserId = null;
+        function openPasswordModal(id, username) {
+            resetPasswordUserId = id;
+            document.getElementById('resetPasswordUsername').innerText = username;
+            document.getElementById('resetNewPassword').value = '';
+            toggleModal('passwordModal', true);
+        }
+        document.getElementById('resetPasswordForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const password = document.getElementById('resetNewPassword').value;
+            if (!password || !resetPasswordUserId) return;
+            const res = await fetch(`/api/admin/users/${resetPasswordUserId}/password`, { 
+                method: 'PUT', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify({ password }) 
+            });
+            if (res.ok) {
+                toggleModal('passwordModal', false);
+                alert('Security clearance key updated successfully.');
+            } else {
+                const data = await res.json();
+                alert('Failed to update: ' + (data.error || 'Unknown error'));
+            }
+        });
         function getSeverityClass(s) { if(!s) return 'severity-unassigned'; const sev = s.toLowerCase(); if(sev === 'critical') return 'severity-critical'; if(sev === 'high') return 'severity-high'; if(sev === 'medium') return 'severity-medium'; if(sev === 'unassigned') return 'severity-unassigned'; return 'severity-low'; }
 
         document.getElementById('createUserForm').addEventListener('submit', async (e) => {

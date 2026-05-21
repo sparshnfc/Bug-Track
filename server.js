@@ -99,6 +99,7 @@ app.post('/api/login', (req, res) => {
         req.session.userId = user.id;
         req.session.username = user.username;
         req.session.role = user.role;
+        req.session.department = user.department;
         res.json({ role: user.role });
     });
 });
@@ -110,7 +111,7 @@ app.post('/api/logout', (req, res) => {
 
 app.get('/api/me', (req, res) => {
     if (!req.session.userId) return res.status(401).json({ error: 'Unauthorized' });
-    res.json({ username: req.session.username, role: req.session.role });
+    res.json({ username: req.session.username, role: req.session.role, department: req.session.department });
 });
 
 app.get('/api/bugs', requireAuth, (req, res) => {
@@ -189,6 +190,16 @@ app.get('/api/admin/users', requireAdmin, (req, res) => {
 app.put('/api/admin/users/:id', requireAdmin, (req, res) => {
     const { role, department } = req.body;
     db.run("UPDATE users SET role = ?, department = ? WHERE id = ?", [role, department, req.params.id], () => res.json({success:true}));
+});
+
+app.put('/api/admin/users/:id/password', requireAdmin, (req, res) => {
+    const { password } = req.body;
+    if (!password) return res.status(400).json({ error: 'Password is required' });
+    const hash = bcrypt.hashSync(password, 10);
+    db.run("UPDATE users SET password = ? WHERE id = ?", [hash, req.params.id], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true });
+    });
 });
 
 app.delete('/api/admin/users/:id', requireAdmin, (req, res) => {

@@ -208,10 +208,7 @@
                         </div>
                     </div>
                     <div class="space-y-8">
-                        <div id="mediaViewer" class="bg-slate-950 rounded-[2.5rem] overflow-hidden min-h-[400px] flex items-center justify-center border-[6px] border-white shadow-2xl">
-                        </div>
-                        <div id="mediaControls" class="flex gap-4 p-2 bg-white rounded-3xl border border-slate-100 shadow-sm overflow-x-auto">
-                        </div>
+                        <div id="mediaButtons" class="flex gap-4 p-2 bg-white rounded-3xl border border-slate-100 shadow-sm overflow-x-auto"></div>
                     </div>
                 </div>
             </div>
@@ -300,24 +297,16 @@
             sevEl.innerText = bug.severity || 'Unassigned';
             sevEl.className = `status-badge ${getSeverityClass(bug.severity)}`;
 
-            const viewer = document.getElementById('mediaViewer');
-            const controls = document.getElementById('mediaControls');
-            viewer.innerHTML = '<p class="text-slate-500 font-black uppercase tracking-widest text-xs">No Evidence</p>';
-            controls.innerHTML = '';
 
-            if (bug.image_path) {
-                controls.innerHTML += `<button onclick="viewMedia('img', '${bug.image_path}')" class="w-16 h-16 rounded-2xl flex-shrink-0 overflow-hidden border-2 border-transparent hover:border-blue-600 transition-all"><img src="${bug.image_path}" class="w-full h-full object-cover"></button>`;
-                viewMedia('img', bug.image_path);
-            }
-            if (bug.video_link) {
-                controls.innerHTML += `<button onclick="viewMedia('vid', '${bug.video_link}')" class="w-16 h-16 bg-slate-900 rounded-2xl flex-shrink-0 flex items-center justify-center text-2xl border-2 border-transparent hover:border-blue-600 transition-all">🎥</button>`;
-                if (!bug.image_path) viewMedia('vid', bug.video_link);
-            }
-            if (bug.doc_path) {
-                controls.innerHTML += `<a href="${bug.doc_path}" target="_blank" class="w-16 h-16 bg-blue-50 rounded-2xl flex-shrink-0 flex items-center justify-center text-2xl border-2 border-transparent hover:border-blue-600 transition-all">📄</a>`;
-            }
-
+            // Updated media handling: use button bar only
+            const buttonsDiv = document.getElementById('mediaButtons');
+            let btns = '';
+            if (bug.image_path) btns += `<button onclick="window.open('${bug.image_path}', '_blank')" class="flex items-center gap-2 px-5 py-3 bg-emerald-50 text-emerald-700 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-emerald-100 hover:shadow-md transition-all border border-emerald-100"><span class="text-base">🖼️</span> View Image</button>`;
+            if (bug.doc_path) btns += `<button onclick="window.open('${bug.doc_path}', '_blank')" class="flex items-center gap-2 px-5 py-3 bg-blue-50 text-blue-700 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-blue-100 hover:shadow-md transition-all border border-blue-100"><span class="text-base">📄</span> View Document</button>`;
+            if (bug.video_link) btns += `<button onclick="window.open('${bug.video_link}', '_blank')" class="flex items-center gap-2 px-5 py-3 bg-purple-50 text-purple-700 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-purple-100 hover:shadow-md transition-all border border-purple-100"><span class="text-base">🎬</span> View Video</button>`;
             toggleModal(true);
+            buttonsDiv.innerHTML = btns;
+
         }
 
         function viewMedia(type, url) {
